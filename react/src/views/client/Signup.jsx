@@ -4,6 +4,7 @@ import { useRef } from "react";
 import axiosClient from "../../axios-client";
 import { useStateContext } from "../../contexts/ContextProvider";
 import { useState } from "react";
+import { ClipLoader } from "react-spinners";
 
 const Signup = () => {
   const nameRef = useRef();
@@ -14,23 +15,28 @@ const Signup = () => {
 
   const [errors, setErrors] = useState(null);
   const { setUser, setToken } = useStateContext();
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = (ev) => {
     ev.preventDefault();
+    setLoading(true);
     const payload = {
       name: nameRef.current.value,
       email: emailRef.current.value,
       contact_number: contact_numberRef.current.value,
+      role: "user",
       password: passwordRef.current.value,
       password_confirmation: passwordConfirmationRef.current.value,
     };
     axiosClient
       .post("/signup", payload)
       .then(({ data }) => {
+        setLoading(false);
         setUser(data.user);
         setToken(data.token);
       })
       .catch((err) => {
+        setLoading(false);
         const response = err.response;
         if (response && response.status === 422) {
           setErrors(response.data.errors);
@@ -115,7 +121,7 @@ const Signup = () => {
             </div>
             <div className="w-full flex flex-col gap-4">
               <button className="bg-green-600 text-white py-3 rounded-md shadow-md hover:bg-green-700 duration-300">
-                Signup
+                {loading ? <ClipLoader color="#fff" size={20} /> : "Sign up"}
               </button>
               <div className=" flex flex-row gap-2">
                 <span className=" text-gray-600">Already Registered?</span>

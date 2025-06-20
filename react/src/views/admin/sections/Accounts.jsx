@@ -25,7 +25,7 @@ const Accounts = () => {
     name: "",
     email: "",
     contact_number: "",
-    role: "admin",
+    role: "",
     password: "",
     password_confirmation: "",
   };
@@ -322,7 +322,6 @@ const Accounts = () => {
                 </label>
                 <input
                   id="contact_number"
-                  type="tel"
                   value={user.contact_number}
                   onChange={(ev) =>
                     setUser({ ...user, contact_number: ev.target.value })

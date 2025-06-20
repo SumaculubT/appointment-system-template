@@ -87,15 +87,15 @@ function Navbar() {
               } overflow-hidden absolute xl:relative 2xl:relative xl:my-auto mt-20 bg-[rgba(57,57,198,0.7)] bg-opacity-80 xl:bg-transparent w-full xl:w-fit left-0 z-20 duration-300 flex xl:justify-center justify-start`}
             >
               <ul className=" flex xl:flex-row text-white flex-col items-center gap-2 2xl:gap-10 xl:py-0 py-5 max-w-7xl">
-                <Link>Home</Link>
-                <Link>Products</Link>
-                <Link>Services</Link>
-                <Link>Franchising</Link>
-                <Link>Hot Deals</Link>
+                <Link to="/">Home</Link>
+                <Link to="/products">Products</Link>
+                <Link to="/services">Services</Link>
+                <Link to="/franchising">Franchising</Link>
+                <Link to="/hotdeals">Hot Deals</Link>
                 {user.role !== "admin" && (
                   <Link to="/appointment">Inquire/Book</Link>
                 )}
-                <Link>About Us</Link>
+                <Link to="/aboutus">About Us</Link>
                 {user.role === "admin" && (
                   <Link to="/dashboard">Dashboard</Link>
                 )}
