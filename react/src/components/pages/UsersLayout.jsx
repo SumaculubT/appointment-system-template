@@ -13,7 +13,9 @@ const UsersLayout = () => {
   return (
     <div>
       <Navbar />
-      <Outlet />
+      <div className=" h-fit min-h-screen bg-gray-200">
+        <Outlet />
+      </div>
     </div>
   );
 };

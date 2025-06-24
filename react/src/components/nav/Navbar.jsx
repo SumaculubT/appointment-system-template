@@ -100,14 +100,15 @@ function Navbar() {
                   <Link to="/dashboard">Dashboard</Link>
                 )}
                 {token ? (
-                  <>
+                  <div className=" flex flex-row">
                     <button
                       onClick={onLogout}
-                      className="cursor-pointer mx-10 bg-red-800 py-7 px-8 -skew-x-12 hover:mr-8 hover:px-10 duration-200"
+                      className="cursor-pointer mx-6 bg-red-800 py-7 px-8 -skew-x-12 hover:mr-4 hover:px-10 duration-200"
                     >
                       Logout
                     </button>
-                  </>
+                    <p className="text-white m-auto"> Tanginamo! {user.name}</p>
+                  </div>
                 ) : (
                   <div className=" flex flex-row h-full gap-2 mx-2">
                     <Link

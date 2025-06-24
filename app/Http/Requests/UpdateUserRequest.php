@@ -3,8 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-// FIX: Change this import
-use Illuminate\Validation\Rules\Password; // THIS IS THE CORRECT IMPORT FOR PASSWORD VALIDATION RULES
+use Illuminate\Validation\Rules\Password;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -26,27 +25,22 @@ class UpdateUserRequest extends FormRequest
         $rules = [
             'name' => 'required|string|max:55',
             'email' => 'required|email|unique:users,email,' . $this->id,
-            'contact_number' => 'nullable|string|max:20', // Assuming you want to validate contact_number
+            'contact_number' => 'nullable|string|max:20',
         ];
 
-        // Conditionally add password validation rules ONLY if a new password is provided
-        // This is crucial for update forms where password is often optional
-        if ($this->filled('password')) { // Use filled() to check if it's present AND not empty
+        if ($this->filled('password')) {
             $rules['password'] = [
-                'required', // Make it required ONLY if it's filled in the request
+                'required',
                 'string',
-                'min:8', // You can use this string-based min, or the object-oriented Password::min(8)
-                // Both work if you've imported the correct Password class for the latter
+                'min:8',
                 'confirmed',
-                Password::min(8) // This now refers to Illuminate\Validation\Rules\Password
+                Password::min(8)
                     ->letters()
                     ->symbols()
-                    ->uncompromised(), // Highly recommended for security
+                    ->uncompromised(),
             ];
-            $rules['password_confirmation'] = 'required|same:password'; // If password is required, confirmation is also required
+            $rules['password_confirmation'] = 'required|same:password';
         } else {
-            // If password is not provided, ensure the fields are nullable or not present in validation
-            // This is handled by not adding them to $rules if not filled
         }
 
         return $rules;
