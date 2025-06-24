@@ -67,6 +67,7 @@ const Accounts = () => {
       getUsers();
     });
   };
+
   const onSubmit = (ev) => {
     ev.preventDefault();
     setNewUserLoading(true);
@@ -295,7 +296,7 @@ const Accounts = () => {
                       setUser({ ...user, role: ev.target.value })
                     }
                   >
-                    <option value="">Select Row</option>
+                    <option value="">Select Role</option>
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
                   </select>

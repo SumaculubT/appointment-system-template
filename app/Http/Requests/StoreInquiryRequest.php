@@ -22,14 +22,14 @@ class StoreInquiryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
+            'user_id' => 'nullable',
             'user_name' => 'required|string|max:255',
             'user_email' => 'required|email',
             'user_contact_number' => 'nullable|string|max:20',
             'vehicle_desc' => 'nullable|string',
             'plate_number' => 'nullable|string|max:20',
-            'set_date' => '',
-            'set_time' => '',
+            'set_date' => 'nullable',
+            'set_time' => 'nullable',
             'inquiry' => 'required|string',
             'status' => 'required|string|in:pending,approved,rejected',
         ];

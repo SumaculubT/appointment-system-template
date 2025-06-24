@@ -18,6 +18,7 @@ class InquiryResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'user_id' => $this->user_id,
             'user_name' => $this->user_name,
             'user_email' => $this->user_email,
             'user_contact_number' => $this->user_contact_number,

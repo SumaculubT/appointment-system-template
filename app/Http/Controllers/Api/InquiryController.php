@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateInquiryRequest;
 use App\Http\Resources\InquiryResource;
 use App\Models\Inquiry;
 use Illuminate\Http\Request;
@@ -30,8 +31,8 @@ class InquiryController extends Controller
             'user_contact_number' => 'nullable|string',
             'vehicle_desc' => 'required|string',
             'plate_number' => 'required|string',
-            'set_date' => 'required|date',
-            'set_time' => 'required',
+            'set_date' => '',
+            'set_time' => '',
             'inquiry' => 'required|string',
             'status' => 'required|string',
         ]);
@@ -57,16 +58,23 @@ class InquiryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateInquiryRequest $request, $id)
     {
-        //
+        $inquiry = Inquiry::findOrFail($id);
+        $inquiry->update($request->validated());
+
+        return response()->json([
+            'message' => 'Inquiry updated successfully.',
+            'data' => $inquiry,
+        ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Inquiry $inquiry)
     {
-        //
+        $inquiry->delete();
+        return response("", 204);
     }
 }
