@@ -15,8 +15,7 @@ const Accounts = () => {
   const addNewBgRef = useRef(null);
 
   const [errors, setErrors] = useState(null);
-  const { setNotification } = useStateContext();
-  const { notification } = useStateContext();
+  const { notification, setNotification } = useStateContext();
   const [visible, setVisible] = useState(false);
   const [animationClass, setAnimationClass] = useState("fade-in");
 
@@ -30,6 +29,24 @@ const Accounts = () => {
     password_confirmation: "",
   };
   const [user, setUser] = useState({ defaultUser });
+
+  useEffect(() => {
+    getUsers();
+  }, []);
+
+  const getUsers = () => {
+    setLoading(true);
+    axiosClient
+      .get("/users")
+      .then(({ data }) => {
+        setLoading(false);
+        const filteredUsers = data.data.filter((u) => u.role !== "admin");
+        setUsers(filteredUsers);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  };
 
   useEffect(() => {
     if (notification) {
@@ -50,10 +67,6 @@ const Accounts = () => {
       };
     }
   }, [notification]);
-
-  useEffect(() => {
-    getUsers();
-  }, []);
 
   const onDelete = (u) => {
     if (
@@ -110,20 +123,6 @@ const Accounts = () => {
       setIsVisible(false);
       document.body.classList.remove("overflow-hidden");
     }, 200);
-  };
-
-  const getUsers = () => {
-    setLoading(true);
-    axiosClient
-      .get("/users")
-      .then(({ data }) => {
-        setLoading(false);
-        const filteredUsers = data.data.filter((u) => u.role !== "admin");
-        setUsers(filteredUsers);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
   };
   return (
     <>

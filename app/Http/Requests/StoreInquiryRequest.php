@@ -22,7 +22,7 @@ class StoreInquiryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'nullable',
+            'user_id' => 'exists:users,id',
             'user_name' => 'required|string|max:255',
             'user_email' => 'required|email',
             'user_contact_number' => 'nullable|string|max:20',

@@ -28,7 +28,7 @@ export const ContextProvider = ({ children }) => {
 
   const setNotification = (message) => {
     _setNotification(message);
-    setTimeout(() => _setNotification(""), 5000);
+    setTimeout(() => _setNotification(""), 4000);
   };
 
   const fetchInquiries = (data) => {
