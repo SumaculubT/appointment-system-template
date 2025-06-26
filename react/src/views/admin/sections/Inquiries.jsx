@@ -315,7 +315,7 @@ const Inquiries = () => {
         {filteredInquiries.map((inq) => (
           <div
             key={inq.id}
-            className="flex flex-col text-md bg-gray-100 rounded-md shadow-md py-5 px-6 "
+            className="flex flex-col text-md h-fit bg-gray-100 rounded-md shadow-md py-5 px-6 "
           >
             <div className=" flex flex-row pb-4 mb-4 border-b border-gray-300">
               <span className=" flex flex-row w-full m-auto font-semibold text-md text-gray-900">
