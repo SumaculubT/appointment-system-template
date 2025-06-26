@@ -92,9 +92,11 @@ function Navbar() {
                 <Link to="/services">Services</Link>
                 <Link to="/franchising">Franchising</Link>
                 <Link to="/hotdeals">Hot Deals</Link>
-                {user.role !== "admin" && (
+                {token && user.role !== "admin" && (
                   <Link to="/appointment">Inquire/Book</Link>
                 )}
+                {!token && <Link to="/login">Inquire/Book</Link>}
+
                 <Link to="/aboutus">About Us</Link>
                 {user.role === "admin" && (
                   <Link to="/dashboard">Dashboard</Link>

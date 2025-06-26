@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axiosClient from "../../axios-client";
 import { useStateContext } from "../../contexts/ContextProvider";
+import { Navigate } from "react-router-dom";
 
 const Appointment = () => {
   const { user, setUser } = useStateContext();
