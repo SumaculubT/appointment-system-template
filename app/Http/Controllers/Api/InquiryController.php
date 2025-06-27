@@ -16,7 +16,7 @@ class InquiryController extends Controller
     public function index()
     {
         return InquiryResource::collection(
-            Inquiry::query()->orderBy('id', 'desc')->paginate(10)
+            Inquiry::query()->orderBy('updated_at', 'desc')->paginate(6)
         );
     }
     /**

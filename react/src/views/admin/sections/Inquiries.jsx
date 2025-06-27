@@ -10,7 +10,9 @@ import { BiCalendar } from "react-icons/bi";
 import { PiPlus } from "react-icons/pi";
 
 const Inquiries = () => {
-  const { inquiries, fetchInquiries } = useStateContext();
+  const { inquiries, fetchInquiries, notification, setNotification } =
+    useStateContext();
+  const [initial, setInitial] = useState(null);
   const { user, setUser } = useStateContext();
   const [selectedInquiry, setSelectedInquiry] = useState(null);
   const [animationClass, setAnimationClass] = useState("fade-in");
@@ -23,9 +25,10 @@ const Inquiries = () => {
   const [approveLoading, setApproveLoading] = useState(false);
   const [rejectLoading, setRejectLoading] = useState(false);
   const [waitListLoading, setWaitListLoading] = useState(false);
-
-  const { notification, setNotification } = useStateContext();
-
+  const [noChange, setNoChange] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({});
+  const [selectedPage, setSelectedPage] = useState();
   const [inquiry, setInquiry] = useState({
     user_id: "",
     user_name: "",
@@ -37,6 +40,19 @@ const Inquiries = () => {
     set_time: "",
     inquiry: "",
     status: "pending",
+  });
+
+  const buildInquiryPayload = (statusOverride = null) => ({
+    plate_number: inquiry.plate_number,
+    vehicle_desc: inquiry.vehicle_desc,
+    set_date: inquiry.set_date,
+    set_time: inquiry.set_time,
+    user_id: inquiry.user_id,
+    user_name: selectedInquiry.user_name,
+    user_email: selectedInquiry.user_email,
+    user_contact_number: selectedInquiry.user_contact_number,
+    inquiry: selectedInquiry.inquiry,
+    status: statusOverride ?? selectedInquiry.status,
   });
 
   useEffect(() => {
@@ -70,27 +86,43 @@ const Inquiries = () => {
   }, [notification]);
 
   const navigate = useNavigate();
-  useEffect(() => {
-    getInquiries();
-  }, []);
 
   const viewDetailsRef = useRef(null);
   const viewDetailsBgRef = useRef(null);
 
-  const getInquiries = () => {
+  const getInquiries = (page = 1) => {
+    setLoading(true);
     axiosClient
-      .get("/inquiry")
+      .get(`/inquiry?page=${page}`)
       .then(({ data }) => {
+        setLoading(false);
         fetchInquiries(data.data);
+        setPagination({
+          links: data.links,
+          meta: data.meta,
+        });
+        setCurrentPage(data.meta.current_page);
+        setSelectedPage(page);
       })
       .catch((err) => {
+        setLoading(false);
         console.error("Failed to load inquiries:", err);
       });
   };
+  useEffect(() => {
+    getInquiries();
+  }, []);
 
   const viewDetailsBtn = (inq) => {
     setSelectedInquiry(inq);
     setInquiry({
+      plate_number: inq.plate_number,
+      vehicle_desc: inq.vehicle_desc,
+      set_date: inq.set_date,
+      set_time: inq.set_time,
+      status: inq.status,
+    });
+    setInitial({
       plate_number: inq.plate_number,
       vehicle_desc: inq.vehicle_desc,
       set_date: inq.set_date,
@@ -127,19 +159,6 @@ const Inquiries = () => {
     }, 200);
   };
 
-  const buildInquiryPayload = (statusOverride = null) => ({
-    plate_number: inquiry.plate_number,
-    vehicle_desc: inquiry.vehicle_desc,
-    set_date: inquiry.set_date,
-    set_time: inquiry.set_time,
-    user_id: inquiry.user_id,
-    user_name: selectedInquiry.user_name,
-    user_email: selectedInquiry.user_email,
-    user_contact_number: selectedInquiry.user_contact_number,
-    inquiry: selectedInquiry.inquiry,
-    status: statusOverride ?? selectedInquiry.status,
-  });
-
   const handleInquiryUpdate = async (
     ev,
     status = null,
@@ -147,6 +166,16 @@ const Inquiries = () => {
     successMessage = "Successfully saved."
   ) => {
     ev.preventDefault();
+    setNotification(null);
+    if (!status) {
+      const isSame = JSON.stringify(initial) === JSON.stringify(inquiry);
+      if (isSame) {
+        setNoChange(true);
+        setTimeout(() => setNoChange(false), 1000);
+        return;
+      }
+    }
+
     if (setLoading) setLoading(true);
 
     try {
@@ -179,6 +208,7 @@ const Inquiries = () => {
   const reject = (ev) => handleInquiryUpdate(ev, "rejected", setRejectLoading);
 
   const onDelete = (inq) => {
+    setNotification(null);
     if (
       !window.confirm("Are you sure you want to delete this user: " + inq.id)
     ) {
@@ -255,6 +285,7 @@ const Inquiries = () => {
 
   const handleChange = (e) => {
     setInquiry({ ...inquiry, [e.target.name]: e.target.value });
+    setInitial({ ...inquiry, [e.target.name]: e.target.value });
   };
 
   return (
@@ -336,13 +367,13 @@ const Inquiries = () => {
               </span>
             </div>
 
-            <div className="flex justify-between border-b border-gray-300 pb-2 font-semibold text-gray-900">
+            <div className="flex justify-between border-b text-[15px] border-gray-300 pb-2 font-semibold text-gray-900">
               <div className=" flex flex-col gap-4">
                 <div className=" flex flex-col">
                   <span className=" text-xs text-gray-600 mr-2">
                     Customer's Name
                   </span>
-                  <span className=" text-base">{inq.user_name}</span>
+                  <span>{inq.user_name}</span>
                 </div>
                 <div className=" flex flex-col">
                   <span className=" text-xs text-gray-600 mr-2">Email</span>
@@ -398,7 +429,7 @@ const Inquiries = () => {
               <div
                 ref={viewDetailsRef}
                 tabIndex={-1}
-                className="fixed scale-0 pb-10 transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 bg-white shadow-md rounded-md h-fit w-1/4 z-50 duration-200"
+                className="fixed scale-0 pb-10 transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 bg-white shadow-md rounded-md h-fit w-1/3 z-50 duration-200"
               >
                 <div className=" flex justify-end h-fit w-full">
                   <FaTimes
@@ -413,8 +444,8 @@ const Inquiries = () => {
                   <h1 className=" text-center font-bold text-4xl mb-5">
                     Inquiry Details
                   </h1>
-                  <div className="flex justify-between border-b border-gray-300 pb-4 font-semibold text-gray-900">
-                    <div className=" flex flex-col gap-4">
+                  <div className="flex justify-between border-b w-full border-gray-300 pb-4 font-semibold text-gray-900">
+                    <div className=" flex flex-col w-full gap-4">
                       <div className=" flex flex-col">
                         <span className=" text-xs text-gray-600 mr-2">
                           Customer's Name
@@ -454,8 +485,7 @@ const Inquiries = () => {
                         </span>
                       </div>
                     </div>
-
-                    <div className=" flex flex-col gap-4">
+                    <div className=" flex flex-col w-full gap-4">
                       <div className=" flex flex-col">
                         <span className=" text-xs text-gray-600 mr-2">
                           Vehicle Description
@@ -467,7 +497,9 @@ const Inquiries = () => {
                           Plate Number
                         </span>
                         <input
-                          className="border border-gray-300 shadow-sm rounded-sm px-2"
+                          className={`border rounded px-2 py-1 transition-all duration-300 ${
+                            noChange ? "shake" : "border-gray-300"
+                          }`}
                           type="text"
                           name="plate_number"
                           id="plate_number"
@@ -480,12 +512,14 @@ const Inquiries = () => {
                           }
                         />
                       </div>
-                      <div className=" flex flex-col gap-2">
+                      <div className=" flex flex-col gap-1">
                         <span className=" text-xs text-gray-600 mr-2">
                           Preferred Schedule
                         </span>
                         <input
-                          className="border border-gray-300 shadow-sm rounded-sm px-2"
+                          className={`border rounded px-2 transition-all duration-300 ${
+                            noChange ? "shake" : "border-gray-300"
+                          }`}
                           type="date"
                           name="set_date"
                           id="set_date"
@@ -499,7 +533,9 @@ const Inquiries = () => {
                         />
 
                         <input
-                          className="border border-gray-300 shadow-sm rounded-sm px-2"
+                          className={`border rounded px-2 transition-all duration-300 ${
+                            noChange ? "shake" : "border-gray-300"
+                          }`}
                           type="time"
                           name="set_time"
                           id="set_time"
@@ -579,7 +615,62 @@ const Inquiries = () => {
           </div>
         ))}
       </section>
+      <section>
+        {pagination.meta && pagination.meta.last_page > 1 && (
+          <nav>
+            <ul className=" flex flex-row gap-2 w-11/12 m-auto h-full justify-end mt-10">
+              {pagination.links.prev && (
+                <li>
+                  <button
+                    className=" cursor-pointer font-semibold px-4 py-2 hover:scale-105 duration-300"
+                    onClick={() => getInquiries(currentPage - 1)}
+                  >
+                    Previous
+                  </button>
+                </li>
+              )}
 
+              {pagination.meta.links.map((link, index) => {
+                if (
+                  link.label === "&laquo; Previous" ||
+                  link.label === "Next &raquo;"
+                ) {
+                  return null;
+                }
+
+                const pageNumber = parseInt(link.label);
+                const isCurrent = link.active;
+                const isDisabled = !link.url;
+
+                return (
+                  <li key={index}>
+                    <button
+                      onClick={() => getInquiries(pageNumber)}
+                      className={` cursor-pointer px-4 py-2 rounded-sm border border-gray-900  shadow-sm hover:text-white hover:bg-gray-900 duration-300 ${
+                        isCurrent ? "text-white bg-gray-900" : "text-gray-900"
+                      }`}
+                      disabled={isDisabled || isCurrent}
+                    >
+                      {link.label}
+                    </button>
+                  </li>
+                );
+              })}
+
+              {pagination.links.next && (
+                <li>
+                  <button
+                    className=" cursor-pointer font-semibold px-4 py-2 hover:scale-105 duration-300"
+                    onClick={() => getInquiries(currentPage + 1)}
+                  >
+                    Next
+                  </button>
+                </li>
+              )}
+            </ul>
+          </nav>
+        )}
+      </section>
       <section>
         {addInqVisible && (
           <div
