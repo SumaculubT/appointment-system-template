@@ -28,7 +28,6 @@ const Inquiries = () => {
   const [noChange, setNoChange] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({});
-  const [selectedPage, setSelectedPage] = useState();
   const [inquiry, setInquiry] = useState({
     user_id: "",
     user_name: "",
