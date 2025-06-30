@@ -4,7 +4,7 @@ import axiosClient from "../../../axios-client";
 import dayjs from "dayjs";
 import { FaCheck, FaTimes, FaUserLock } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import { PulseLoader } from "react-spinners";
+import { ClipLoader, PulseLoader } from "react-spinners";
 import { TbHandStop } from "react-icons/tb";
 import { BiCalendar } from "react-icons/bi";
 import { PiPlus } from "react-icons/pi";
@@ -22,6 +22,7 @@ const Inquiries = () => {
   const [addInqVisible, setaddInqVisible] = useState(false);
   const addNewRef = useRef(null);
   const addNewBgRef = useRef(null);
+  const [saveLoading, setSaveLoading] = useState(false);
   const [approveLoading, setApproveLoading] = useState(false);
   const [rejectLoading, setRejectLoading] = useState(false);
   const [waitListLoading, setWaitListLoading] = useState(false);
@@ -121,13 +122,7 @@ const Inquiries = () => {
       set_time: inq.set_time,
       status: inq.status,
     });
-    setInitial({
-      plate_number: inq.plate_number,
-      vehicle_desc: inq.vehicle_desc,
-      set_date: inq.set_date,
-      set_time: inq.set_time,
-      status: inq.status,
-    });
+    setInitial(inquiry);
     setIsVisible(true);
     setTimeout(() => {
       viewDetailsRef.current.classList.remove("scale-0");
@@ -166,11 +161,10 @@ const Inquiries = () => {
   ) => {
     ev.preventDefault();
     setNotification(null);
-    if (!status) {
-      const isSame = JSON.stringify(initial) === JSON.stringify(inquiry);
-      if (isSame) {
+    if ((status = null)) {
+      if (JSON.stringify(inquiry) === JSON.stringify(selectedInquiry)) {
         setNoChange(true);
-        setTimeout(() => setNoChange(false), 1000);
+        setTimeout(() => setNoChange(false), 300);
         return;
       }
     }
@@ -199,7 +193,7 @@ const Inquiries = () => {
     }
   };
 
-  const saveDetails = (ev) => handleInquiryUpdate(ev);
+  const saveDetails = (ev) => handleInquiryUpdate(ev, null, setSaveLoading);
   const approve = (ev) =>
     handleInquiryUpdate(ev, "approved", setApproveLoading);
   const waitlist = (ev) =>
@@ -438,6 +432,7 @@ const Inquiries = () => {
                 </div>
                 <form
                   onSubmit={saveDetails}
+                  disabled={saveLoading}
                   className=" h-full flex px-10 flex-col text-gray-900"
                 >
                   <h1 className=" text-center font-bold text-4xl mb-5">
@@ -555,8 +550,13 @@ const Inquiries = () => {
                     </span>
                     <span>{selectedInquiry.inquiry}</span>
                   </div>
-                  <button className=" flex flex-row text-blue-500 bg-blue-50 border border-blue-500 gap-2 justify-center shadow-sm hover:scale-105 duration-300 py-2 rounded-sm">
-                    Save
+
+                  <button className=" flex flex-row text-blue-500 bg-blue-50 border border-blue-500 justify-center shadow-sm hover:scale-105 duration-300 py-2 rounded-sm">
+                    {saveLoading ? (
+                      <PulseLoader className="py-2" color="#155DFC" size={6} />
+                    ) : (
+                      "Save"
+                    )}
                   </button>
                 </form>
                 <div className=" flex flex-row w-full px-10 gap-4 text-gray-900 mt-4">

@@ -47,10 +47,10 @@ const Dashboard = () => {
               to="/dashboard/statistics"
               className="flex items-center p-3 rounded-md w-full hover:bg-gray-300 duration-200"
             >
-              <FaChartBar className="text-2xl" />
+              <FaChartBar className="text-xl" />
 
               <span
-                className={`ml-4 text-md ${
+                className={`ml-4 text-sm ${
                   sideNav ? "hidden" : "visible"
                 } whitespace-nowrap`}
               >
@@ -63,10 +63,10 @@ const Dashboard = () => {
               to="/dashboard/books"
               className="flex items-center p-3 rounded-md w-full hover:bg-gray-300 duration-200"
             >
-              <LuBookUser className="text-2xl" />
+              <LuBookUser className="text-xl" />
 
               <span
-                className={`ml-4 text-md ${
+                className={`ml-4 text-sm ${
                   sideNav ? "hidden" : "visible"
                 } whitespace-nowrap`}
               >
@@ -79,10 +79,10 @@ const Dashboard = () => {
               to="/dashboard/inquiries"
               className="flex items-center p-3 rounded-md w-full hover:bg-gray-300 duration-200"
             >
-              <MdOutlineMessage className="text-2xl" />
+              <MdOutlineMessage className="text-xl" />
 
               <span
-                className={`ml-4 text-md ${
+                className={`ml-4 text-sm ${
                   sideNav ? "hidden" : "visible"
                 } whitespace-nowrap`}
               >
@@ -95,10 +95,10 @@ const Dashboard = () => {
               to="/dashboard/accounts"
               className="flex items-center p-3 rounded-md w-full hover:bg-gray-300 duration-200 "
             >
-              <MdOutlinePeopleAlt className="text-2xl" />
+              <MdOutlinePeopleAlt className="text-xl" />
 
               <span
-                className={`ml-4 text-md ${
+                className={`ml-4 text-sm ${
                   sideNav ? "hidden" : "visible"
                 } whitespace-nowrap`}
               >
