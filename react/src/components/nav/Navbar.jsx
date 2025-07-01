@@ -109,7 +109,7 @@ function Navbar() {
                     >
                       Logout
                     </button>
-                    <p className="text-white m-auto"> Tanginamo! {user.name}</p>
+                    <p className="text-white m-auto"> {user.name}</p>
                   </div>
                 ) : (
                   <div className=" flex flex-row h-full gap-2 mx-2">
