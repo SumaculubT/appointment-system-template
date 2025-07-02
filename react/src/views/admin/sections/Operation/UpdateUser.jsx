@@ -62,7 +62,7 @@ const UpdateUser = () => {
         </div>
       )}
       {!loading && (
-        <section className=" w-11/12 h-full m-auto">
+        <section key={id} className=" w-11/12 h-full m-auto">
           <div className=" flex flex-col w-1/2 p-10 m-auto bg-gray-100 rounded-lg shadow-md">
             <h1 className=" text-3xl font-semibold mb-2">
               Edit User's Information

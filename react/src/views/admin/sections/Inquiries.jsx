@@ -3,11 +3,12 @@ import { useStateContext } from "../../../contexts/ContextProvider";
 import axiosClient from "../../../axios-client";
 import dayjs from "dayjs";
 import { FaCheck, FaTimes, FaUserLock } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ClipLoader, PulseLoader } from "react-spinners";
 import { TbHandStop } from "react-icons/tb";
 import { BiCalendar } from "react-icons/bi";
 import { PiPlus } from "react-icons/pi";
+import { LiaEllipsisHSolid, LiaTimesSolid } from "react-icons/lia";
 
 const Inquiries = () => {
   const { inquiries, fetchInquiries, notification, setNotification } =
@@ -26,9 +27,12 @@ const Inquiries = () => {
   const [approveLoading, setApproveLoading] = useState(false);
   const [rejectLoading, setRejectLoading] = useState(false);
   const [waitListLoading, setWaitListLoading] = useState(false);
+  const [addNewLoading, setAddNewLoading] = useState(false);
   const [noChange, setNoChange] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({});
+  const [errors, setErrors] = useState(null);
+  const [selectedInqNav, setSelectedInqNav] = useState("All");
   const [inquiry, setInquiry] = useState({
     user_id: "",
     user_name: "",
@@ -39,7 +43,15 @@ const Inquiries = () => {
     set_date: "",
     set_time: "",
     inquiry: "",
-    status: "pending",
+    status: "approved",
+  });
+  const [counts, setCounts] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    waitlisted: 0,
+    archived: 0,
   });
 
   const buildInquiryPayload = (statusOverride = null) => ({
@@ -90,27 +102,35 @@ const Inquiries = () => {
   const viewDetailsRef = useRef(null);
   const viewDetailsBgRef = useRef(null);
 
-  const getInquiries = (page = 1) => {
+  const getInquiries = (page = 1, status = selectedInqNav) => {
     setLoading(true);
+
     axiosClient
-      .get(`/inquiry?page=${page}`)
+      .get(`/inquiry`, {
+        params: {
+          page,
+          status: status.toLowerCase(),
+        },
+      })
       .then(({ data }) => {
         setLoading(false);
         fetchInquiries(data.data);
         setPagination({
-          links: data.links,
-          meta: data.meta,
+          links: data.meta?.pagination?.links || [],
+          meta: data.meta?.pagination,
         });
-        setCurrentPage(data.meta.current_page);
+        setCounts(data.counts);
+        setCurrentPage(data.meta?.pagination?.current_page);
       })
       .catch((err) => {
         setLoading(false);
         console.error("Failed to load inquiries:", err);
       });
   };
+
   useEffect(() => {
-    getInquiries();
-  }, []);
+    getInquiries(1, selectedInqNav);
+  }, [selectedInqNav]);
 
   const viewDetailsBtn = (inq) => {
     setSelectedInquiry(inq);
@@ -238,16 +258,24 @@ const Inquiries = () => {
   const infoGraph = [
     {
       name: "All Inquiries",
-      num: "1,450 Inquiries",
-      info: "+230 In this month",
+      num: `${counts.total} Inquiries`,
+      info: "+X In this month", // optional placeholder
     },
-    { name: "Pending Inquiries", num: "10 Inquiries", info: "Current" },
+    {
+      name: "Pending Inquiries",
+      num: `${counts.pending} Inquiries`,
+      info: "Current",
+    },
     {
       name: "Approved Inquiries",
-      num: "252 Inquiries",
-      info: "+34 In this day",
+      num: `${counts.approved} Inquiries`,
+      info: "+Y In this day", // optional
     },
-    { name: "Rejected Inquiries", num: "2 Inquiries", info: "+1 In this day" },
+    {
+      name: "Rejected Inquiries",
+      num: `${counts.rejected} Inquiries`,
+      info: "+Z In this day", // optional
+    },
   ];
 
   const inqNav = [
@@ -258,9 +286,9 @@ const Inquiries = () => {
     "Rejected",
     "Archive",
   ];
-  const [selectedInqNav, setSelectedInqNav] = useState(inqNav[0]);
+
   const filteredInquiries =
-    selectedInqNav && selectedInqNav !== "All"
+    selectedInqNav !== "All"
       ? inquiries.filter((inq) => inq.status === selectedInqNav.toLowerCase())
       : inquiries;
 
@@ -270,16 +298,23 @@ const Inquiries = () => {
 
   const addNewInquiry = (ev) => {
     ev.preventDefault();
+    setAddNewLoading(true);
     axiosClient
       .post("/inquiry", inquiry)
       .then(() => {
         getInquiries();
         setaddInqVisible(false);
-        alert("Inquiry submitted successfully!");
+        setNotification("Successfuly Added");
+        setAddNewLoading(false);
       })
       .catch((err) => {
-        console.error(err);
-        alert("Failed to submit inquiry");
+        const response = err.response;
+        setAddNewLoading(false);
+        if (response && response.status === 422) {
+          if (response.data.errors) {
+            setErrors(response.data.errors);
+          }
+        }
       });
   };
 
@@ -314,7 +349,10 @@ const Inquiries = () => {
         </div>
         <div className=" flex flex-row w-11/12 m-auto mb-10 gap-10">
           {infoGraph.map((i) => (
-            <div className=" pr-6 py-4 shadow-sm bg-gray-100 w-full rounded-sm flex flex-col">
+            <div
+              key={i.name}
+              className=" pr-6 py-4 shadow-sm bg-gray-100 w-full rounded-sm flex flex-col"
+            >
               <h3 className=" text-gray-500 text-sm pl-6 font-semibold">
                 {i.name}
               </h3>
@@ -328,17 +366,15 @@ const Inquiries = () => {
           ))}
         </div>
         <div className=" flex flex-row border-b gap-6 text-sm font-semibold border-gray-400 w-11/12 m-auto mb-4">
-          {inqNav.map((i) => (
+          {inqNav.map((status) => (
             <button
-              key={i}
-              onClick={() => inqNavToggle(i)}
-              className={`pb-2 ${
-                selectedInqNav === i
-                  ? "text-blue-600 font-semibold border-b-2  border-blue-600"
-                  : "text-gray-700"
-              } hover:text-blue-600 transition-colors duration-200`}
+              key={status}
+              onClick={() => setSelectedInqNav(status)}
+              className={`px-4 py-1 ${
+                selectedInqNav === status ? "text-blue-600" : "text-gray-700"
+              }`}
             >
-              {i}
+              {status.charAt(0).toUpperCase() + status.slice(1)}
             </button>
           ))}
         </div>
@@ -416,7 +452,7 @@ const Inquiries = () => {
                 </div>
               </div>
 
-              <div className=" flex flex-row w-full gap-4 text-gray-900 mt-4">
+              <div className=" flex flex-row w-full gap-2 text-gray-900 mt-4">
                 <button
                   onClick={(ev) => onDelete(inq)}
                   className=" flex flex-row text-gray-900 bg-gray-100 border border-gray-500 gap-2 justify-center shadow-sm hover:scale-105 duration-300 py-2 rounded-sm w-1/3"
@@ -436,7 +472,7 @@ const Inquiries = () => {
               {isVisible && (
                 <div
                   ref={viewDetailsBgRef}
-                  className="fixed scale-0  inset-0 bg-[rgba(16,24,33,0.3)] z-40 backdrop-blur-sm"
+                  className="fixed scale-0  inset-0 bg-[rgba(16,24,33,0.3)] z-40 backdrop-blur-xs"
                 ></div>
               )}
 
@@ -446,44 +482,40 @@ const Inquiries = () => {
                   tabIndex={-1}
                   className="fixed scale-0 pb-10 transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 bg-white shadow-md rounded-md h-fit w-1/3 z-50 duration-200"
                 >
-                  <div className=" flex justify-end h-fit w-full">
-                    <FaTimes
+                  <div className=" flex justify-between h-fit w-full p-2 ">
+                    <h1 className=" text-gray-900 text-xl font-bold">
+                      Inquiry Details
+                    </h1>
+                    <LiaTimesSolid
                       onClick={handleClose}
-                      className=" cursor-pointer text-xl m-2"
+                      className=" cursor-pointer text-gray-600 text-2xl"
                     />
                   </div>
                   <form
                     onSubmit={saveDetails}
                     disabled={saveLoading}
-                    className=" h-full flex px-10 flex-col text-gray-900"
+                    className=" h-full flex w-11/12 flex-col text-gray-900 m-auto"
                   >
-                    <h1 className=" text-center font-bold text-4xl mb-5">
-                      Inquiry Details
-                    </h1>
-                    <div className="flex justify-between border-b w-full border-gray-300 pb-4 font-semibold text-gray-900">
+                    <div className="flex justify-between border-b w-full border-t py-5 border-gray-300 pb-4 font-semibold text-gray-900">
                       <div className=" flex flex-col w-full gap-4">
                         <div className=" flex flex-col">
-                          <span className=" text-xs text-gray-600 mr-2">
+                          <h1 className=" text-xs font-semibold">
                             Customer's Name
-                          </span>
+                          </h1>
                           <span>{selectedInquiry.user_name}</span>
                         </div>
                         <div className=" flex flex-col">
-                          <span className=" text-xs text-gray-600 mr-2">
+                          <h1 className=" text-xs font-semibold">
                             Telephone Number
-                          </span>
+                          </h1>
                           <span>{selectedInquiry.user_contact_number}</span>
                         </div>
                         <div className=" flex flex-col">
-                          <span className=" text-xs text-gray-600 mr-2">
-                            Email
-                          </span>
+                          <h1 className=" text-xs font-semibold">Email</h1>
                           <span>{selectedInquiry.user_email}</span>
                         </div>
                         <div className=" flex flex-col">
-                          <span className=" text-xs text-gray-600 mr-2">
-                            Status
-                          </span>
+                          <h1 className=" text-xs font-semibold">Status</h1>
                           <span
                             className={` cursor-pointer w-fit py-1 text-sm font-semibold shadow-sm flex justify-end px-10 rounded-sm ${
                               selectedInquiry.status === "pending"
@@ -503,15 +535,15 @@ const Inquiries = () => {
                       </div>
                       <div className=" flex flex-col w-full gap-4">
                         <div className=" flex flex-col">
-                          <span className=" text-xs text-gray-600 mr-2">
+                          <h1 className=" text-xs font-semibold">
                             Vehicle Description
-                          </span>
+                          </h1>
                           <span>{selectedInquiry.vehicle_desc}</span>
                         </div>
                         <div className=" flex flex-col">
-                          <span className=" text-xs text-gray-600 mr-2">
+                          <h1 className=" text-xs font-semibold">
                             Plate Number
-                          </span>
+                          </h1>
                           <input
                             className={`border rounded px-2 py-1 transition-all duration-300 ${
                               noChange ? "shake" : "border-gray-300"
@@ -529,9 +561,9 @@ const Inquiries = () => {
                           />
                         </div>
                         <div className=" flex flex-col gap-1">
-                          <span className=" text-xs text-gray-600 mr-2">
+                          <h1 className=" text-xs font-semibold">
                             Preferred Schedule
-                          </span>
+                          </h1>
                           <input
                             className={`border rounded px-2 transition-all duration-300 ${
                               noChange ? "shake" : "border-gray-300"
@@ -566,14 +598,14 @@ const Inquiries = () => {
                         </div>
                       </div>
                     </div>
-                    <div className=" flex flex-col border-b border-gray-300 py-4 mb-4 font-semibold text-gray-900">
-                      <span className=" text-xs text-gray-600 mr-2">
-                        Inquiry:
-                      </span>
-                      <span>{selectedInquiry.inquiry}</span>
+                    <div className=" flex flex-col border-b border-gray-300 py-2 mb-4 font-semibold text-gray-900">
+                      <h1 className=" text-gray-900 text-lg font-bold pb-2">
+                        Inquiry
+                      </h1>
+                      <span className="text-sm">{selectedInquiry.inquiry}</span>
                     </div>
 
-                    <button className=" flex flex-row text-blue-500 bg-blue-50 border border-blue-500 justify-center shadow-sm hover:scale-105 duration-300 py-2 rounded-sm">
+                    <button className=" flex flex-row text-white bg-blue-500 justify-center shadow-sm hover:bg-blue-600 duration-100 py-2 rounded-sm">
                       {saveLoading ? (
                         <PulseLoader
                           className="py-2"
@@ -585,15 +617,15 @@ const Inquiries = () => {
                       )}
                     </button>
                   </form>
-                  <div className=" flex flex-row w-full px-10 gap-4 text-gray-900 mt-4">
+                  <div className=" flex flex-row w-11/12 m-auto gap-2 text-gray-900 mt-2">
                     <button
                       onClick={reject}
                       disabled={rejectLoading}
-                      className="text-red-500 bg-red-50 border border-red-500 shadow-sm hover:scale-105 duration-300 py-2 rounded-sm w-1/2"
+                      className="text-white bg-red-500 shadow-sm hover:bg-red-600 duration-100 py-2 rounded-sm w-1/2"
                     >
                       <div className="flex flex-row gap-2 w-full justify-center">
                         {rejectLoading ? (
-                          <PulseLoader color="#dc2626" size={6} />
+                          <PulseLoader color="#fff" size={5} />
                         ) : (
                           <>
                             <FaTimes className="my-auto text-xl" />
@@ -605,11 +637,11 @@ const Inquiries = () => {
                     <button
                       onClick={waitlist}
                       disabled={waitListLoading}
-                      className="text-yellow-500 bg-yellow-50 border border-yellow-500 shadow-sm hover:scale-105 duration-300 py-2 rounded-sm w-1/2"
+                      className="text-white bg-yellow-500 shadow-sm hover:bg-yellow-600 duration-100 py-2 rounded-sm w-1/2"
                     >
                       <div className="flex flex-row gap-2 w-full justify-center">
                         {waitListLoading ? (
-                          <PulseLoader color="#f59e0b" size={6} />
+                          <PulseLoader color="#fff" size={5} />
                         ) : (
                           <>
                             <TbHandStop className="my-auto text-xl" />
@@ -621,11 +653,11 @@ const Inquiries = () => {
                     <button
                       onClick={approve}
                       disabled={approveLoading}
-                      className="text-green-500 bg-green-50 border border-green-500 shadow-sm hover:scale-105 duration-300 py-2 rounded-sm w-1/2"
+                      className="text-white bg-green-500 shadow-sm hover:bg-green-600 duration-100 py-2 rounded-sm w-1/2"
                     >
                       <div className="flex flex-row gap-2 w-full justify-center">
                         {approveLoading ? (
-                          <PulseLoader color="#059669" size={6} />
+                          <PulseLoader color="#fff" size={5} />
                         ) : (
                           <>
                             <FaCheck className="my-auto text-xl" />
@@ -643,52 +675,115 @@ const Inquiries = () => {
       <section>
         {pagination.meta && pagination.meta.last_page > 1 && (
           <nav>
-            <ul className=" flex flex-row gap-2 w-11/12 m-auto h-full justify-end mt-10">
-              {pagination.links.prev && (
+            <ul className=" flex flex-row gap-2 w-11/12 m-auto h-full justify-center mt-10">
+              {pagination?.meta?.current_page !== 1 && (
                 <li>
                   <button
-                    className=" cursor-pointer font-semibold px-4 py-2 hover:scale-105 duration-300"
-                    onClick={() => getInquiries(currentPage - 1)}
+                    className="cursor-pointer text-gray-800 font-semibold text-sm py-2 hover:scale-105 duration-300"
+                    onClick={() => getInquiries(1, selectedInqNav)}
+                  >
+                    {"<< First"}
+                  </button>
+                </li>
+              )}
+
+              {pagination?.meta?.current_page > 1 && (
+                <li>
+                  <button
+                    className="cursor-pointer text-gray-800 font-semibold px-4 py-2 hover:scale-105 duration-300"
+                    onClick={() =>
+                      getInquiries(currentPage - 1, selectedInqNav)
+                    }
                   >
                     Previous
                   </button>
                 </li>
               )}
 
-              {pagination.meta.links.map((link, index) => {
-                if (
-                  link.label === "&laquo; Previous" ||
-                  link.label === "Next &raquo;"
-                ) {
-                  return null;
-                }
+              {pagination.meta &&
+                (() => {
+                  const totalPages = pagination.meta.last_page;
+                  const currentPage = pagination.meta.current_page;
+                  const pageButtons = [];
 
-                const pageNumber = parseInt(link.label);
-                const isCurrent = link.active;
-                const isDisabled = !link.url;
+                  const createPageButton = (page) => (
+                    <li key={page}>
+                      <button
+                        onClick={() => getInquiries(page)}
+                        className={`cursor-pointer px-3 py-1 rounded-sm border border-gray-900 shadow-sm hover:text-white hover:bg-gray-900 duration-300 ${
+                          currentPage === page
+                            ? "text-white bg-gray-900"
+                            : "text-gray-900"
+                        }`}
+                        disabled={currentPage === page}
+                      >
+                        {page}
+                      </button>
+                    </li>
+                  );
 
-                return (
-                  <li key={index}>
-                    <button
-                      onClick={() => getInquiries(pageNumber)}
-                      className={` cursor-pointer px-4 py-2 rounded-sm border border-gray-900  shadow-sm hover:text-white hover:bg-gray-900 duration-300 ${
-                        isCurrent ? "text-white bg-gray-900" : "text-gray-900"
-                      }`}
-                      disabled={isDisabled || isCurrent}
-                    >
-                      {link.label}
-                    </button>
-                  </li>
-                );
-              })}
+                  // Always show first page
+                  pageButtons.push(createPageButton(1));
 
-              {pagination.links.next && (
+                  // Show "..." if current page > 3
+                  if (currentPage > 4) {
+                    pageButtons.push(
+                      <LiaEllipsisHSolid
+                        className=" mt-4 text-gray-900"
+                        size={20}
+                      />
+                    );
+                  }
+
+                  // Show pages around the current page
+                  for (
+                    let i = Math.max(2, currentPage - 2);
+                    i <= Math.min(totalPages - 1, currentPage + 2);
+                    i++
+                  ) {
+                    pageButtons.push(createPageButton(i));
+                  }
+
+                  // Show "..." before last page
+                  if (currentPage < totalPages - 3) {
+                    pageButtons.push(
+                      <LiaEllipsisHSolid
+                        className=" mt-4 text-gray-900"
+                        size={20}
+                      />
+                    );
+                  }
+
+                  // Always show last page if more than one page
+                  if (totalPages > 1) {
+                    pageButtons.push(createPageButton(totalPages));
+                  }
+
+                  return pageButtons;
+                })()}
+
+              {pagination?.meta?.current_page < pagination?.meta?.last_page && (
                 <li>
                   <button
-                    className=" cursor-pointer font-semibold px-4 py-2 hover:scale-105 duration-300"
-                    onClick={() => getInquiries(currentPage + 1)}
+                    className="cursor-pointer text-gray-800 font-semibold px-4 py-2 hover:scale-105 duration-300"
+                    onClick={() =>
+                      getInquiries(currentPage + 1, selectedInqNav)
+                    }
                   >
                     Next
+                  </button>
+                </li>
+              )}
+              {pagination?.meta?.current_page !==
+                pagination?.meta?.last_page && (
+                <li>
+                  <button
+                    className="cursor-pointer text-sm text-gray-800 font-semibold py-2 hover:scale-105 duration-300"
+                    onClick={() =>
+                      getInquiries(pagination.meta.last_page, selectedInqNav)
+                    }
+                  >
+                    {"Last >>"}
                   </button>
                 </li>
               )}
@@ -706,54 +801,67 @@ const Inquiries = () => {
         {addInqVisible && (
           <div
             ref={addNewRef}
-            className="fixed scale-0 transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 bg-white shadow-md rounded-md h-fit w-1/2 z-50 duration-200"
+            className="fixed scale-0 transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 bg-white shadow-md rounded-md h-fit w-1/3 z-50 duration-200"
           >
-            <div className=" flex justify-end h-fit w-full">
-              <FaTimes
-                onClick={handleCloseNewInquiry}
-                className=" cursor-pointer text-xl m-2"
-              />
-            </div>
-            <form
-              onSubmit={addNewInquiry}
-              className="flex flex-col w-11/12 m-auto mb-6"
-            >
-              <h1 className="text-2xl text-center font-semibold  text-gray-900  mb-10">
+            <div className=" flex justify-between h-fit w-full p-2 ">
+              <h1 className=" text-gray-900 text-xl font-bold">
                 Add New Appointment
               </h1>
+              <LiaTimesSolid
+                onClick={handleCloseNewInquiry}
+                className=" cursor-pointer text-gray-600 text-2xl"
+              />
+            </div>
+            {errors && (
+              <>
+                <div className=" w-11/12 m-auto p-2 rounded-md shadow-md bg-red-500 text-white text-sm">
+                  <div className=" w-full flex justify-end">
+                    <LiaTimesSolid
+                      color="#fff"
+                      onClick={() => {
+                        setErrors(null);
+                      }}
+                      className=" cursor-pointer text-gray-600 text-xl"
+                    />
+                  </div>
 
+                  {Object.keys(errors).map((key) => (
+                    <p key={key}>{errors[key][0]}</p>
+                  ))}
+                </div>
+              </>
+            )}
+            <form
+              onSubmit={addNewInquiry}
+              className="flex flex-col w-11/12 m-auto border-t border-gray-300 py-2 mb-6"
+            >
               <div className=" flex justify-between gap-4 w-full">
                 <div className=" flex flex-col w-full">
                   <div className="flex flex-col py-3">
-                    <label className="text-md font-semibold">Name</label>
+                    <h1 className=" text-xs font-semibold">Full Name</h1>
                     <input
-                      value={inquiry.user_name}
                       onChange={handleChange}
-                      className="p-2 border border-gray-300 shadow-sm"
+                      className="p-2 border border-gray-300 shadow-sm rounded-sm"
                       type="text"
                       name="user_name"
                       placeholder="Name"
                     />
                   </div>
                   <div className="flex flex-col py-3">
-                    <label className="text-md font-semibold">Email</label>
+                    <h1 className=" text-xs font-semibold">Email</h1>
                     <input
-                      value={inquiry.user_email}
                       onChange={handleChange}
-                      className="p-2 border border-gray-300 shadow-sm"
+                      className="p-2 border border-gray-300 shadow-sm rounded-sm"
                       type="email"
                       name="user_email"
                       placeholder="Email"
                     />
                   </div>
                   <div className="flex flex-col py-3">
-                    <label className="text-md font-semibold">
-                      Contact Number
-                    </label>
+                    <h1 className=" text-xs font-semibold">Contact Number</h1>
                     <input
-                      value={inquiry.user_contact_number}
                       onChange={handleChange}
-                      className="p-2 border border-gray-300 shadow-sm"
+                      className="p-2 border border-gray-300 shadow-sm rounded-sm"
                       type="text"
                       name="user_contact_number"
                       placeholder="Contact Number"
@@ -762,26 +870,22 @@ const Inquiries = () => {
                 </div>
                 <div className=" flex flex-col w-full">
                   <div className="flex flex-col w-full py-3">
-                    <label className="text-md font-semibold">
+                    <h1 className=" text-xs font-semibold">
                       Vehicle Year, Make and Model
-                    </label>
+                    </h1>
                     <input
-                      value={inquiry.vehicle_desc}
                       onChange={handleChange}
-                      className="p-2 border border-gray-300 shadow-sm"
+                      className="p-2 border border-gray-300 shadow-sm rounded-sm"
                       type="text"
                       name="vehicle_desc"
                       placeholder="Your Vehicle"
                     />
                   </div>
                   <div className="flex flex-col py-3">
-                    <label className="text-md font-semibold">
-                      Plate Number
-                    </label>
+                    <h1 className=" text-xs font-semibold">Plate Number</h1>
                     <input
-                      value={inquiry.plate_number}
                       onChange={handleChange}
-                      className="p-2 border border-gray-300 shadow-sm"
+                      className="p-2 border border-gray-300 shadow-sm rounded-sm"
                       type="text"
                       name="plate_number"
                       placeholder="Plate Number"
@@ -789,26 +893,20 @@ const Inquiries = () => {
                   </div>
                   <div className=" flex flex-row gap-2 ">
                     <div className="flex flex-col py-3 w-full">
-                      <label className="text-md font-semibold">
-                        Preferred Date
-                      </label>
+                      <h1 className=" text-xs font-semibold">Preferred Date</h1>
                       <input
-                        value={inquiry.set_date}
                         onChange={handleChange}
-                        className="p-2 border border-gray-300 shadow-sm"
+                        className="p-2 border border-gray-300 shadow-sm rounded-sm"
                         type="date"
                         name="set_date"
                       />
                     </div>
 
                     <div className="flex flex-col py-3 w-full">
-                      <label className="text-md font-semibold">
-                        Preferred Time
-                      </label>
+                      <h1 className=" text-xs font-semibold">Preferred Time</h1>
                       <input
-                        value={inquiry.set_time}
                         onChange={handleChange}
-                        className="p-2 border border-gray-300 shadow-sm"
+                        className="p-2 border border-gray-300 shadow-sm rounded-sm"
                         type="time"
                         name="set_time"
                       />
@@ -818,23 +916,32 @@ const Inquiries = () => {
               </div>
 
               <div className="flex flex-col py-3">
-                <label className="text-md font-semibold">Inquiry</label>
+                <h1 className=" text-xs font-semibold">Inquiry</h1>
                 <textarea
-                  value={inquiry.inquiry}
                   onChange={handleChange}
                   rows={5}
-                  className="p-2 border border-gray-300 shadow-sm"
+                  className="p-2 border border-gray-300 shadow-sm rounded-sm"
                   name="inquiry"
                   placeholder="Write your inquiry here..."
                 />
               </div>
 
-              <div className=" w-full flex justify-end">
+              <div className=" w-full flex justify-between gap-2">
+                <a
+                  onClick={handleCloseNewInquiry}
+                  className=" cursor-pointer py-2 w-full text-center text-gray-900 border border-gray-900 rounded-sm font-semibold shadow-sm hover:bg-gray-900 hover:text-white duration-100"
+                >
+                  Close
+                </a>
                 <button
-                  className=" cursor-pointer py-2 px-10 w-fit bg-green-600 font-semibold text-white shadow-sm"
+                  className=" cursor-pointer py-2 w-full rounded-sm bg-green-600 font-semibold text-white shadow-sm hover:bg-green-700 duration-100"
                   type="submit"
                 >
-                  Add
+                  {addNewLoading ? (
+                    <ClipLoader color="#fff" size={20} />
+                  ) : (
+                    "Add"
+                  )}
                 </button>
               </div>
             </form>

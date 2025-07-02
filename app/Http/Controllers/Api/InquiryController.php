@@ -13,12 +13,35 @@ class InquiryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return InquiryResource::collection(
-            Inquiry::query()->orderBy('updated_at', 'desc')->paginate(6)
-        );
+        $query = Inquiry::query()->orderBy('updated_at', 'desc');
+
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        // Count all inquiries by status (ignores pagination)
+        $counts = [
+            'total' => Inquiry::count(),
+            'pending' => Inquiry::where('status', 'pending')->count(),
+            'approved' => Inquiry::where('status', 'approved')->count(),
+            'rejected' => Inquiry::where('status', 'rejected')->count(),
+            'waitlisted' => Inquiry::where('status', 'waitlisted')->count(),
+            'archived' => Inquiry::where('status', 'archive')->count(),
+        ];
+
+        $paginated = $query->paginate(20);
+
+        return response()->json([
+            'data' => InquiryResource::collection($paginated),
+            'meta' => [
+                'pagination' => $paginated->toArray(),
+            ],
+            'counts' => $counts
+        ]);
     }
+
     /**
      * Store a newly created resource in storage.
      */

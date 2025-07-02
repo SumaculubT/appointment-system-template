@@ -6,6 +6,7 @@ import axiosClient from "../../axios-client";
 import { PulseLoader } from "react-spinners";
 
 function Navbar() {
+  const { user, token, setUser, setToken } = useStateContext();
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const [isSetNav, setNav] = useState(false);
@@ -50,7 +51,6 @@ function Navbar() {
       });
   }, []);
 
-  const { user, token, setUser, setToken } = useStateContext();
   const home = location.pathname.toLowerCase().includes("home");
 
   return (
@@ -99,7 +99,14 @@ function Navbar() {
 
                 <Link to="/aboutus">About Us</Link>
                 {user.role === "admin" && (
-                  <Link to="/dashboard">Dashboard</Link>
+                  <Link
+                    to="/dashboard"
+                    state={{
+                      user,
+                    }}
+                  >
+                    Dashboard
+                  </Link>
                 )}
                 {token ? (
                   <div className=" flex flex-row">
