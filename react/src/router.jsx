@@ -32,6 +32,10 @@ const router = createBrowserRouter([
         element: <Login />,
       },
       {
+        path: "/login/callback", // New route for Google callback
+        element: <Login />, // Re-use Login component, it will handle URL params
+      },
+      {
         path: "/signup",
         element: <Signup />,
       },

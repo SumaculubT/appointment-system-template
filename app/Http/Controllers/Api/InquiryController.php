@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateInquiryRequest;
 use App\Http\Resources\InquiryResource;
 use App\Models\Inquiry;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class InquiryController extends Controller
@@ -21,6 +22,9 @@ class InquiryController extends Controller
             $query->where('status', $request->status);
         }
 
+        $today = Carbon::today();
+        $startOfMonth = Carbon::now()->startOfMonth();
+
         // Count all inquiries by status (ignores pagination)
         $counts = [
             'total' => Inquiry::count(),
@@ -29,6 +33,10 @@ class InquiryController extends Controller
             'rejected' => Inquiry::where('status', 'rejected')->count(),
             'waitlisted' => Inquiry::where('status', 'waitlisted')->count(),
             'archived' => Inquiry::where('status', 'archive')->count(),
+
+            'this_month_total' => Inquiry::whereDate('created_at', '>=', $startOfMonth)->count(),
+            'today_approved' => Inquiry::where('status', 'approved')->whereDate('updated_at', $today)->count(),
+            'today_rejected' => Inquiry::where('status', 'rejected')->whereDate('updated_at', $today)->count(),
         ];
 
         $paginated = $query->paginate(20);

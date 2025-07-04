@@ -5,6 +5,7 @@ import axiosClient from "../../axios-client";
 import { useStateContext } from "../../contexts/ContextProvider";
 import { useState } from "react";
 import { ClipLoader } from "react-spinners";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Signup = () => {
   const nameRef = useRef();
@@ -46,13 +47,13 @@ const Signup = () => {
   return (
     <div className="h-screen bg-gray-200 w-full pt-20">
       <div className=" h-full flex items-center">
-        <div className="bg-white h-fit w-1/3 rounded-md shadow-md m-auto">
+        <div className="bg-white h-fit w-1/4 rounded-md shadow-md m-auto">
           <form
             className=" h-full flex flex-col gap-3 p-10 text-gray-900"
             onSubmit={onSubmit}
           >
-            <h1 className=" text-center font-bold text-4xl mb-10">
-              SIGN UP FOR FREE
+            <h1 className=" text-center font-semibold text-4xl mb-10">
+              Sign up
             </h1>
             {errors && (
               <div className=" w-full p-4 rounded-md shadow-md bg-red-500 text-white text-sm">
@@ -62,72 +63,86 @@ const Signup = () => {
               </div>
             )}
             <div className=" flex flex-col">
-              <label className=" font-semibold" htmlFor="name">
+              <label className=" font-semibold text-sm" htmlFor="name">
                 Full Name
               </label>
               <input
                 id="name"
                 ref={nameRef}
-                className=" p-2 rounded border border-gray-500 shadow-sm text-md"
+                className=" p-2 rounded border border-gray-300 shadow-sm text-md"
                 placeholder="Full Name"
               />
             </div>
             <div className=" flex flex-col">
-              <label className=" font-semibold" htmlFor="email">
+              <label className=" font-semibold text-sm" htmlFor="email">
                 Email Address
               </label>
               <input
                 id="email"
                 ref={emailRef}
-                className=" p-2 rounded border border-gray-500 shadow-sm text-md"
+                className=" p-2 rounded border border-gray-300 shadow-sm text-md"
                 type="email"
                 placeholder="Email Address"
               />
             </div>
             <div className=" flex flex-col">
-              <label className=" font-semibold" htmlFor="contact_number">
+              <label
+                className=" font-semibold text-sm"
+                htmlFor="contact_number"
+              >
                 Contact Number
               </label>
               <input
                 id="contact_number"
                 ref={contact_numberRef}
-                className=" p-2 rounded border border-gray-500 shadow-sm text-md"
+                className=" p-2 rounded border border-gray-300 shadow-sm text-md"
                 placeholder="Contact Number"
               />
             </div>
             <div className=" flex flex-col">
-              <label className=" font-semibold" htmlFor="password">
+              <label className=" font-semibold text-sm" htmlFor="password">
                 Password
               </label>
               <input
                 id="password"
                 ref={passwordRef}
-                className=" p-2 rounded border border-gray-500 shadow-sm text-md"
+                className=" p-2 rounded border border-gray-300 shadow-sm text-md"
                 type="password"
                 placeholder="Password"
               />
             </div>
             <div className=" flex flex-col">
-              <label className=" font-semibold" htmlFor="password_confirmation">
+              <label
+                className=" font-semibold text-sm"
+                htmlFor="password_confirmation"
+              >
                 Confim Password
               </label>
               <input
                 id="password_confirmation"
                 ref={passwordConfirmationRef}
-                className=" p-2 rounded border border-gray-500 shadow-sm text-md"
+                className=" p-2 rounded border border-gray-300 shadow-sm text-md"
                 type="password"
                 placeholder="Confirm Password"
               />
             </div>
-            <div className="w-full flex flex-col gap-4">
-              <button className="bg-green-600 text-white py-3 rounded-md shadow-md hover:bg-green-700 duration-300">
-                {loading ? <ClipLoader color="#fff" size={20} /> : "Sign up"}
-              </button>
+            <div className="w-full flex flex-col gap-4 text-sm">
+              <div className=" flex flex-row justify-between gap-2">
+                <GoogleLogin
+                  size="large"
+                  text="continue_with"
+                  logo_alignment="center"
+                  width="280px"
+                />
+                <button className="bg-blue-600 w-full text-white font-semibold py-1 rounded-sm shadow-md hover:bg-blue-800 duration-100">
+                  {loading ? <ClipLoader color="#fff" size={20} /> : "Sign up"}
+                </button>
+              </div>
               <div className=" flex flex-row gap-2">
-                <span className=" text-gray-600">Already Registered?</span>
+                <span className=" text-gray-600 ">Already Registered?</span>
                 <Link
                   to="/login"
-                  className=" text-gray-800 underline hover:text-gray-900 hover:scale-105 duration-300"
+                  className=" text-gray-800 underline hover:bg-gray-200 px-2 rounded-sm duration-100"
                 >
                   Sign in
                 </Link>

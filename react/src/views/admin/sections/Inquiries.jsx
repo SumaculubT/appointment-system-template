@@ -45,14 +45,6 @@ const Inquiries = () => {
     inquiry: "",
     status: "approved",
   });
-  const [counts, setCounts] = useState({
-    total: 0,
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    waitlisted: 0,
-    archived: 0,
-  });
 
   const buildInquiryPayload = (statusOverride = null) => ({
     plate_number: inquiry.plate_number,
@@ -255,11 +247,23 @@ const Inquiries = () => {
   const formatStatus = (status) =>
     status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
+  const [counts, setCounts] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    waitlisted: 0,
+    archived: 0,
+    this_month_total: 0,
+    today_approved: 0,
+    today_rejected: 0,
+  });
+
   const infoGraph = [
     {
       name: "All Inquiries",
       num: `${counts.total} Inquiries`,
-      info: "+X In this month", // optional placeholder
+      info: `${counts.this_month_total} In this month`,
     },
     {
       name: "Pending Inquiries",
@@ -269,12 +273,12 @@ const Inquiries = () => {
     {
       name: "Approved Inquiries",
       num: `${counts.approved} Inquiries`,
-      info: "+Y In this day", // optional
+      info: `${counts.today_approved} In this day`,
     },
     {
       name: "Rejected Inquiries",
       num: `${counts.rejected} Inquiries`,
-      info: "+Z In this day", // optional
+      info: `${counts.today_rejected} In this day`,
     },
   ];
 
@@ -291,10 +295,6 @@ const Inquiries = () => {
     selectedInqNav !== "All"
       ? inquiries.filter((inq) => inq.status === selectedInqNav.toLowerCase())
       : inquiries;
-
-  const inqNavToggle = (selectedInq) => {
-    setSelectedInqNav(selectedInq);
-  };
 
   const addNewInquiry = (ev) => {
     ev.preventDefault();
@@ -351,16 +351,24 @@ const Inquiries = () => {
           {infoGraph.map((i) => (
             <div
               key={i.name}
-              className=" pr-6 py-4 shadow-sm bg-gray-100 w-full rounded-sm flex flex-col"
+              className=" cursor-pointer pr-6 py-4 shadow-sm bg-gray-100 w-full rounded-sm flex flex-col hover:scale-101 duration-300"
             >
               <h3 className=" text-gray-500 text-sm pl-6 font-semibold">
                 {i.name}
               </h3>
               <h1 className=" text-gray-800 border-l-3 pl-6 py-2 border-blue-600 text-2xl font-semibold">
-                {i.num}
+                {counts.total === 0 ? (
+                  <PulseLoader color="#364153" size={4} />
+                ) : (
+                  i.num
+                )}
               </h1>
               <h2 className=" text-green-600 pl-6 text-sm font-semibold">
-                {i.info}
+                {counts === 0 ? (
+                  <PulseLoader color="#364153" size={4} />
+                ) : (
+                  i.info
+                )}
               </h2>
             </div>
           ))}
@@ -370,7 +378,7 @@ const Inquiries = () => {
             <button
               key={status}
               onClick={() => setSelectedInqNav(status)}
-              className={`px-4 py-1 ${
+              className={`px-2 py-1 hover:text-blue-500 duration-200 ${
                 selectedInqNav === status ? "text-blue-600" : "text-gray-700"
               }`}
             >
@@ -384,7 +392,7 @@ const Inquiries = () => {
           <PulseLoader color="#9F0712" size={6} />
         </div>
       )}
-      <section className="w-11/12 m-auto grid grid-cols-4 gap-5">
+      <section className="w-11/12 m-auto grid grid-cols-4 gap-4">
         {notification && (
           <div
             className={`fixed bottom-15 -right-4 z-50 bg-green-500 font-semibold text-xl -skew-x-12 text-white px-20 py-8 shadow-lg ${animationClass}`}
@@ -399,51 +407,53 @@ const Inquiries = () => {
               className="flex flex-col text-md h-fit bg-gray-100 rounded-md shadow-md py-5 px-6 "
             >
               <div className=" flex flex-row pb-4 mb-4 border-b border-gray-300">
-                <span className=" flex flex-row w-full m-auto font-semibold text-md text-gray-900">
-                  <FaUserLock className=" my-auto mr-2 text-2xl" /> 000-00
+                <span className=" flex flex-row w-full m-auto text-sm text-gray-900">
+                  <FaUserLock className=" my-auto mr-2 text-xl" /> 000-00
                   {inq.id}
                 </span>
                 <span
-                  className={` cursor-pointer w-fit py-2 text-sm font-semibold shadow-sm flex justify-end px-6 rounded-sm ${
+                  className={` cursor-pointer w-fit py-2 text-xs font-semibold flex justify-end px-6 rounded-sm ${
                     inq.status === "pending"
-                      ? "bg-indigo-50 text-indigo-600 border border-indigo-500"
+                      ? "text-indigo-500 border border-indigo-500"
                       : inq.status === "approved"
-                      ? "bg-green-50 text-green-500 border border-green-500"
+                      ? "text-green-500 border border-green-500"
                       : inq.status === "rejected"
-                      ? "bg-red-50 text-red-600 border border-red-500"
-                      : "bg-yellow-50 text-yellow-500 border border-yellow-500"
+                      ? "text-red-500 border border-red-500"
+                      : "text-yellow-500 border border-yellow-500"
                   }`}
                 >
                   {formatStatus(inq.status)}
                 </span>
               </div>
 
-              <div className="flex justify-between border-b text-[15px] border-gray-300 pb-2 font-semibold text-gray-900">
+              <div className="flex justify-between border-b text-[15px] border-gray-300 pb-2 text-gray-800">
                 <div className=" flex flex-col gap-4">
                   <div className=" flex flex-col">
-                    <span className=" text-xs text-gray-600 mr-2">
+                    <span className=" text-xs font-semibold text-gray-600 mr-2">
                       Customer's Name
                     </span>
-                    <span>{inq.user_name}</span>
+                    <span className="text-sm">{inq.user_name}</span>
                   </div>
                   <div className=" flex flex-col">
-                    <span className=" text-xs text-gray-600 mr-2">Email</span>
-                    <span>{inq.user_email}</span>
+                    <span className=" text-xs font-semibold text-gray-600 mr-2">
+                      Email
+                    </span>
+                    <span className="text-sm">{inq.user_email}</span>
                   </div>
                 </div>
 
                 <div className=" flex flex-col gap-4">
                   <div className=" flex flex-col">
-                    <span className=" text-xs text-gray-600 mr-2">
+                    <span className=" text-xs font-semibold text-gray-600 mr-2">
                       Telephone Number
                     </span>
-                    <span>{inq.user_contact_number}</span>
+                    <span className="text-sm">{inq.user_contact_number}</span>
                   </div>
                   <div className=" flex flex-col">
-                    <span className=" text-xs text-gray-600 mr-2">
+                    <span className=" text-xs font-semibold text-gray-600 mr-2">
                       Preferred Schedule
                     </span>
-                    <span>
+                    <span className="text-sm">
                       {dayjs(`${inq.set_date} ${inq.set_time}`).format(
                         "D MMM, YYYY - h:mm A"
                       )}
@@ -452,17 +462,17 @@ const Inquiries = () => {
                 </div>
               </div>
 
-              <div className=" flex flex-row w-full gap-2 text-gray-900 mt-4">
+              <div className=" flex flex-row w-full gap-2 text-sm mt-4">
                 <button
                   onClick={(ev) => onDelete(inq)}
-                  className=" flex flex-row text-gray-900 bg-gray-100 border border-gray-500 gap-2 justify-center shadow-sm hover:scale-105 duration-300 py-2 rounded-sm w-1/3"
+                  className=" flex flex-row text-gray-700 border border-gray-500 gap-2 justify-center shadow-sm hover:bg-gray-500 hover:text-white duration-100 py-2 rounded-sm w-1/3"
                 >
                   <FaTimes className=" my-auto text-xl" />
                   <p>Delete</p>
                 </button>
                 <button
                   onClick={() => viewDetailsBtn(inq)}
-                  className=" flex flex-row text-white bg-blue-600 gap-2 justify-center shadow-sm hover:scale-105 duration-300 py-2 rounded-sm w-2/3"
+                  className=" flex flex-row text-white bg-blue-600 gap-2 justify-center shadow-sm hover:bg-blue-700 duration-100 py-2 rounded-sm w-2/3"
                 >
                   <FaCheck className=" my-auto text-xl" />
                   <p>View Details</p>
@@ -496,7 +506,7 @@ const Inquiries = () => {
                     disabled={saveLoading}
                     className=" h-full flex w-11/12 flex-col text-gray-900 m-auto"
                   >
-                    <div className="flex justify-between border-b w-full border-t py-5 border-gray-300 pb-4 font-semibold text-gray-900">
+                    <div className="flex justify-between border-b w-full border-t py-5 border-gray-300 pb-4 text-gray-900">
                       <div className=" flex flex-col w-full gap-4">
                         <div className=" flex flex-col">
                           <h1 className=" text-xs font-semibold">
@@ -517,7 +527,7 @@ const Inquiries = () => {
                         <div className=" flex flex-col">
                           <h1 className=" text-xs font-semibold">Status</h1>
                           <span
-                            className={` cursor-pointer w-fit py-1 text-sm font-semibold shadow-sm flex justify-end px-10 rounded-sm ${
+                            className={` cursor-pointer w-fit py-1 text-s shadow-sm flex justify-end px-10 rounded-sm ${
                               selectedInquiry.status === "pending"
                                 ? "bg-indigo-50 text-indigo-500 border border-indigo-500"
                                 : selectedInquiry.status === "waitlisted"
@@ -598,7 +608,7 @@ const Inquiries = () => {
                         </div>
                       </div>
                     </div>
-                    <div className=" flex flex-col border-b border-gray-300 py-2 mb-4 font-semibold text-gray-900">
+                    <div className=" flex flex-col border-b border-gray-300 py-2 mb-4 text-gray-900">
                       <h1 className=" text-gray-900 text-lg font-bold pb-2">
                         Inquiry
                       </h1>
@@ -607,11 +617,7 @@ const Inquiries = () => {
 
                     <button className=" flex flex-row text-white bg-blue-500 justify-center shadow-sm hover:bg-blue-600 duration-100 py-2 rounded-sm">
                       {saveLoading ? (
-                        <PulseLoader
-                          className="py-2"
-                          color="#155DFC"
-                          size={6}
-                        />
+                        <PulseLoader className="py-2" color="#fff" size={6} />
                       ) : (
                         "Save"
                       )}
