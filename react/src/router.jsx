@@ -13,10 +13,10 @@ import Aboutus from "./views/client/Aboutus";
 import Dashboard from "./views/admin/Dashboard";
 import Appointment from "./views/client/Appointment";
 import Statistics from "./views/admin/sections/Statistics";
-import Books from "./views/admin/sections/Books";
 import Inquiries from "./views/admin/sections/Inquiries";
 import Accounts from "./views/admin/sections/Accounts";
 import UpdateUser from "./views/admin/sections/Operation/UpdateUser";
+import Calendar from "./views/admin/sections/Calendar";
 
 const router = createBrowserRouter([
   {
@@ -82,8 +82,8 @@ const router = createBrowserRouter([
             element: <Inquiries />,
           },
           {
-            path: "/dashboard/books",
-            element: <Books />,
+            path: "/dashboard/calendar",
+            element: <Calendar />,
           },
           {
             path: "/dashboard/inquiries",

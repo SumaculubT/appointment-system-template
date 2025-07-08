@@ -9,6 +9,15 @@
   --font-raleway: Raleway, "sans-serif";
 }
 
+@font-face {
+  font-family: Poppins;
+  src: url(../src//fonts/Poppins-Regular.ttf);
+}
+
+@theme{
+  --font-poppins: Poppins, "sans-serif";
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;

@@ -108,7 +108,7 @@ function Navbar() {
       )}
       {!loading && (
         <div
-          className={`fixed font-raleway top-0 w-full h-20 z-40 transition-colors duration-700 ${
+          className={`fixed font-poppins top-0 w-full h-20 z-40 transition-colors duration-700 ${
             scrolled || !home ? "bg-gray-900 shadow-xl" : "bg-transparent "
           }`}
           id="navbar"
@@ -138,12 +138,17 @@ function Navbar() {
                 <Link to="/services">Services</Link>
                 <Link to="/franchising">Franchising</Link>
                 <Link to="/hotdeals">Hot Deals</Link>
+                <Link to="/aboutus">About Us</Link>
                 {token && user.role !== "admin" && (
-                  <Link to="/appointment">Inquire/Book</Link>
+                  <Link
+                    to="/appointment"
+                    className="cursor-pointer mx-6 bg-red-800 py-7 px-8 -skew-x-12 hover:mr-4 hover:ml-4 hover:px-10 duration-200"
+                  >
+                    Inquire/Book
+                  </Link>
                 )}
                 {!token && <Link to="/login">Inquire/Book</Link>}
 
-                <Link to="/aboutus">About Us</Link>
                 {user.role === "admin" && (
                   <Link
                     to="/dashboard"

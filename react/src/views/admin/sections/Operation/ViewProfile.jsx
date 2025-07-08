@@ -52,7 +52,7 @@ const ViewProfile = ({
   };
   return (
     <>
-      <section className=" font-raleway">
+      <section className=" font-poppins">
         <div
           ref={viewProfileBgRef}
           className="fixed scale-0  inset-0 bg-[rgba(16,24,33,0.3)] z-50 backdrop-blur-xs"

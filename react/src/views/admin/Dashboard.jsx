@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Outlet, Link, Navigate } from "react-router-dom";
 import { useState } from "react";
-import { FaChartBar } from "react-icons/fa";
+import { FaChartBar, FaRegCalendarCheck } from "react-icons/fa";
 import { MdOutlineMessage, MdOutlinePeopleAlt } from "react-icons/md";
 import { LuBookUser } from "react-icons/lu";
 import axiosClient from "../../axios-client";
@@ -57,7 +57,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className=" flex font-raleway min-h-screen bg-gray-100">
+    <div className=" flex font-poppins min-h-screen bg-gray-100">
       {modalProfile && (
         <ViewProfile
           user={user}
@@ -112,17 +112,17 @@ const Dashboard = () => {
           </li>
           <li>
             <Link
-              to="/dashboard/books"
+              to="/dashboard/calendar"
               className="flex items-center p-3 rounded-md w-full hover:bg-gray-300 duration-200"
             >
-              <LuBookUser className="text-xl" />
+              <FaRegCalendarCheck className="text-xl" />
 
               <span
                 className={`ml-4 text-sm ${
                   sideNav ? "hidden" : "visible"
                 } whitespace-nowrap`}
               >
-                Books
+                Calendar
               </span>
             </Link>
           </li>

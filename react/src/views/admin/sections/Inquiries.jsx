@@ -33,6 +33,7 @@ const Inquiries = () => {
   const [pagination, setPagination] = useState({});
   const [errors, setErrors] = useState(null);
   const [selectedInqNav, setSelectedInqNav] = useState("All");
+  const [today, setToday] = useState(getFormattedDate());
   const [inquiry, setInquiry] = useState({
     user_id: "",
     user_name: "",
@@ -322,14 +323,24 @@ const Inquiries = () => {
     setInquiry({ ...inquiry, [e.target.name]: e.target.value });
     setInitial({ ...inquiry, [e.target.name]: e.target.value });
   };
-  const today = new Date().toLocaleString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+
+  function getFormattedDate() {
+    return new Date().toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  }
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setToday(getFormattedDate());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <>
@@ -378,8 +389,10 @@ const Inquiries = () => {
             <button
               key={status}
               onClick={() => setSelectedInqNav(status)}
-              className={`px-2 py-1 hover:text-blue-500 duration-200 ${
-                selectedInqNav === status ? "text-blue-600" : "text-gray-700"
+              className={`px-2 py-1 hover:text-blue-500 ${
+                selectedInqNav === status
+                  ? "text-blue-600 border-b-2"
+                  : "text-gray-700"
               }`}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -407,7 +420,7 @@ const Inquiries = () => {
               className="flex flex-col text-md h-fit bg-gray-100 rounded-md shadow-md py-5 px-6 "
             >
               <div className=" flex flex-row pb-4 mb-4 border-b border-gray-300">
-                <span className=" flex flex-row w-full m-auto text-sm text-gray-900">
+                <span className=" flex flex-row font-semibold w-full m-auto text-sm text-gray-900">
                   <FaUserLock className=" my-auto mr-2 text-xl" /> 000-00
                   {inq.id}
                 </span>

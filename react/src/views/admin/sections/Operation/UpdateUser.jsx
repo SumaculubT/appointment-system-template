@@ -58,7 +58,7 @@ const UpdateUser = () => {
     <>
       {loading && (
         <div className="h-[78vh] w-full flex items-center justify-center">
-          <PulseLoader color="#9F0712" size={10} />
+          <PulseLoader color="#9F0712" size={5} />
         </div>
       )}
       {!loading && (
