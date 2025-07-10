@@ -19,11 +19,19 @@ class UserController extends Controller
     {
         $query = User::query()->orderBy('id', 'desc');
 
-        if ($request->has('role') && $request->role !== null) {
+        if ($request->has('role') && $request->role !== 'all') {
             $query->where('role', $request->role);
         }
 
-        $paginated = $query->paginate(7);
+        if ($request->has('search') && $request->search !== null) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('email', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        $paginated = $query->paginate(6);
 
         return response()->json([
             'data' => UserResource::collection($paginated),
@@ -32,6 +40,7 @@ class UserController extends Controller
             ],
         ]);
     }
+
 
 
     /**

@@ -39,6 +39,14 @@ class InquiryController extends Controller
             'today_rejected' => Inquiry::where('status', 'rejected')->whereDate('updated_at', $today)->count(),
         ];
 
+        if ($request->has('search') && $request->search !== null) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('user_name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
         $paginated = $query->paginate(20);
 
         return response()->json([

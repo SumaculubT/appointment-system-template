@@ -17,6 +17,8 @@ import Inquiries from "./views/admin/sections/Inquiries";
 import Accounts from "./views/admin/sections/Accounts";
 import UpdateUser from "./views/admin/sections/Operation/UpdateUser";
 import Calendar from "./views/admin/sections/Calendar";
+import ManageProduct from "./views/admin/sections/ManageProduct";
+import ManageServices from "./views/admin/sections/ManageServices";
 
 const router = createBrowserRouter([
   {
@@ -32,8 +34,8 @@ const router = createBrowserRouter([
         element: <Login />,
       },
       {
-        path: "/login/callback", // New route for Google callback
-        element: <Login />, // Re-use Login component, it will handle URL params
+        path: "/login/callback",
+        element: <Login />,
       },
       {
         path: "/signup",
@@ -98,8 +100,12 @@ const router = createBrowserRouter([
             element: <Statistics />,
           },
           {
-            path: "/dashboard/accounts/:id",
-            element: <UpdateUser key="userUpdate" />,
+            path: "/dashboard/products",
+            element: <ManageProduct />,
+          },
+          {
+            path: "/dashboard/services",
+            element: <ManageServices />,
           },
         ],
       },

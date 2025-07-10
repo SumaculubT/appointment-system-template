@@ -102,14 +102,14 @@ function Navbar() {
         />
       )}
       {loading && (
-        <div className="fixed h-screen w-full bg-[rgba(16,24,33,0.3)] backdrop-blur-sm z-50 flex items-center justify-center">
-          <PulseLoader color="#9F0712" size={10} />
+        <div className="fixed h-screen w-full bg-[rgba(16,24,33,0.2)] backdrop-blur-xs z-50 flex items-center justify-center">
+          <PulseLoader color="#9F0712" size={5} />
         </div>
       )}
       {!loading && (
         <div
           className={`fixed font-poppins top-0 w-full h-20 z-40 transition-colors duration-700 ${
-            scrolled || !home ? "bg-gray-900 shadow-xl" : "bg-transparent "
+            scrolled || !home ? "bg-gray-900 shadow-md" : "bg-transparent "
           }`}
           id="navbar"
         >
@@ -142,7 +142,7 @@ function Navbar() {
                 {token && user.role !== "admin" && (
                   <Link
                     to="/appointment"
-                    className="cursor-pointer mx-6 bg-red-800 py-7 px-8 -skew-x-12 hover:mr-4 hover:ml-4 hover:px-10 duration-200"
+                    className="cursor-pointer mx-6 bg-red-800 py-5 px-8 rounded-md hover:mr-4 hover:ml-4 hover:px-10 duration-200"
                   >
                     Inquire/Book
                   </Link>
@@ -152,7 +152,7 @@ function Navbar() {
                 {user.role === "admin" && (
                   <Link
                     to="/dashboard"
-                    className="cursor-pointer mx-6 bg-red-800 py-7 px-8 -skew-x-12 hover:mr-4 hover:ml-4 hover:px-10 duration-200"
+                    className="cursor-pointer mx-6 bg-red-800 py-5 px-8 rounded-md hover:mr-4 hover:ml-4 hover:px-10 duration-200"
                   >
                     Dashboard
                   </Link>

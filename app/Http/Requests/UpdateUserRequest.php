@@ -26,6 +26,7 @@ class UpdateUserRequest extends FormRequest
             'name' => 'required|string|max:55',
             'email' => 'required|email|unique:users,email,' . $this->id,
             'contact_number' => 'nullable|string|max:20',
+            'role' => 'sometimes|in:admin,employee,user',
         ];
 
         if ($this->filled('password')) {

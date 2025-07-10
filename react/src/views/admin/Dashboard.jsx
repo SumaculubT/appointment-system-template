@@ -10,6 +10,12 @@ import { GoSidebarExpand } from "react-icons/go";
 import { LiaTimesSolid } from "react-icons/lia";
 import { ClipLoader } from "react-spinners";
 import ViewProfile from "./sections/Operation/ViewProfile";
+import { FiShoppingCart } from "react-icons/fi";
+import { RiServiceLine } from "react-icons/ri";
+import { RxGear } from "react-icons/rx";
+import { PiGearSixBold } from "react-icons/pi";
+import { GrCart, GrMoney } from "react-icons/gr";
+import { TbSquareToggle } from "react-icons/tb";
 
 const Dashboard = () => {
   const { user, setUser } = useStateContext();
@@ -17,6 +23,7 @@ const Dashboard = () => {
   const [sideNav, setSideNav] = useState(true);
   const [modalProfile, setModalProfile] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
+  const [selectedNav, setSelectedNav] = useState("Inquiries");
   const viewProfileBgRef = useRef(null);
   const viewProfileRef = useRef(null);
 
@@ -57,7 +64,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className=" flex font-poppins min-h-screen bg-gray-100">
+    <div className=" flex font-poppins min-h-screen bg-white">
       {modalProfile && (
         <ViewProfile
           user={user}
@@ -78,7 +85,7 @@ const Dashboard = () => {
       >
         <button
           onClick={viewProfile}
-          className=" cursor-pointer flex justify-between w-full mb-8 gap-4  overflow-x-hidden hover:bg-gray-300 p-1 duration-200 rounded-sm  "
+          className=" cursor-pointer flex justify-between w-full mb-8 gap-4  overflow-x-hidden hover:bg-gray-200 p-1 duration-200 rounded-sm  "
         >
           <div className=" flex flex-row items-center gap-4">
             <div className=" bg-gray-900 rounded-full w-10 h-10"></div>
@@ -92,86 +99,196 @@ const Dashboard = () => {
             </div>
           </div>
         </button>
-
-        <ul className="flex flex-col gap-2">
-          <li>
-            <Link
-              to="/dashboard/statistics"
-              className="flex items-center p-3 rounded-md w-full hover:bg-gray-300 duration-200"
-            >
-              <FaChartBar className="text-xl" />
-
-              <span
-                className={`ml-4 text-sm ${
-                  sideNav ? "hidden" : "visible"
-                } whitespace-nowrap`}
+        <div className=" h-full flex flex-col justify-between pb-5">
+          <ul className="flex flex-col gap-2">
+            <li>
+              <Link
+                to="/dashboard/statistics"
+                className={`flex items-center p-3 rounded-md w-full hover:bg-gray-200 duration-200 ${
+                  selectedNav === "Statistics"
+                    ? "bg-gray-200 shadow-xs"
+                    : "bg-transparent"
+                }`}
+                onClick={() => {
+                  setSelectedNav("Statistics");
+                }}
               >
-                Statistics
-              </span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/dashboard/calendar"
-              className="flex items-center p-3 rounded-md w-full hover:bg-gray-300 duration-200"
-            >
-              <FaRegCalendarCheck className="text-xl" />
+                <FaChartBar className="text-xl" />
 
-              <span
-                className={`ml-4 text-sm ${
-                  sideNav ? "hidden" : "visible"
-                } whitespace-nowrap`}
+                <span
+                  className={`ml-4 text-sm ${
+                    sideNav ? "hidden" : "visible"
+                  } whitespace-nowrap`}
+                >
+                  Statistics
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/dashboard/calendar"
+                className={`flex items-center p-3 rounded-md w-full hover:bg-gray-200 duration-200 ${
+                  selectedNav === "Calendar"
+                    ? "bg-gray-200 shadow-xs"
+                    : "bg-transparent"
+                }`}
+                onClick={() => {
+                  setSelectedNav("Calendar");
+                }}
               >
-                Calendar
-              </span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/dashboard/inquiries"
-              className="flex items-center p-3 rounded-md w-full hover:bg-gray-300 duration-200"
-            >
-              <MdOutlineMessage className="text-xl" />
+                <FaRegCalendarCheck className="text-xl" />
 
-              <span
-                className={`ml-4 text-sm ${
-                  sideNav ? "hidden" : "visible"
-                } whitespace-nowrap`}
+                <span
+                  className={`ml-4 text-sm ${
+                    sideNav ? "hidden" : "visible"
+                  } whitespace-nowrap`}
+                >
+                  Calendar
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/dashboard/inquiries"
+                className={`flex items-center p-3 rounded-md w-full hover:bg-gray-200 duration-200 ${
+                  selectedNav === "Inquiries"
+                    ? "bg-gray-200 shadow-xs"
+                    : "bg-transparent"
+                }`}
+                onClick={() => {
+                  setSelectedNav("Inquiries");
+                }}
               >
-                Inquiries
-              </span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/dashboard/accounts"
-              className="flex items-center p-3 rounded-md w-full hover:bg-gray-300 duration-200 "
-            >
-              <MdOutlinePeopleAlt className="text-xl" />
+                <MdOutlineMessage className="text-xl" />
 
-              <span
-                className={`ml-4 text-sm ${
-                  sideNav ? "hidden" : "visible"
-                } whitespace-nowrap`}
+                <span
+                  className={`ml-4 text-sm ${
+                    sideNav ? "hidden" : "visible"
+                  } whitespace-nowrap`}
+                >
+                  Inquiries
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/dashboard/accounts"
+                className={`flex items-center p-3 rounded-md w-full hover:bg-gray-200 duration-200 ${
+                  selectedNav === "Accounts"
+                    ? "bg-gray-200 shadow-xs"
+                    : "bg-transparent"
+                }`}
+                onClick={() => {
+                  setSelectedNav("Accounts");
+                }}
               >
-                Accounts
-              </span>
-            </Link>
-          </li>
-        </ul>
+                <MdOutlinePeopleAlt className="text-xl" />
+
+                <span
+                  className={`ml-4 text-sm ${
+                    sideNav ? "hidden" : "visible"
+                  } whitespace-nowrap`}
+                >
+                  Accounts
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/dashboard/products"
+                className={`flex items-center p-3 rounded-md w-full hover:bg-gray-200 duration-200 ${
+                  selectedNav === "Products"
+                    ? "bg-gray-200 shadow-xs"
+                    : "bg-transparent"
+                }`}
+                onClick={() => {
+                  setSelectedNav("Products");
+                }}
+              >
+                <GrCart className="text-xl" />
+
+                <span
+                  className={`ml-4 text-sm ${
+                    sideNav ? "hidden" : "visible"
+                  } whitespace-nowrap`}
+                >
+                  Products
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/dashboard/services"
+                className={`flex items-center p-3 rounded-md w-full hover:bg-gray-200 duration-200 ${
+                  selectedNav === "Services"
+                    ? "bg-gray-200 shadow-xs"
+                    : "bg-transparent"
+                }`}
+                onClick={() => {
+                  setSelectedNav("Services");
+                }}
+              >
+                <RiServiceLine className="text-xl" />
+
+                <span
+                  className={`ml-4 text-sm ${
+                    sideNav ? "hidden" : "visible"
+                  } whitespace-nowrap`}
+                >
+                  Services
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/dashboard/services"
+                className={`flex items-center p-3 rounded-md w-full hover:bg-gray-200 duration-200 ${
+                  selectedNav === "Sales"
+                    ? "bg-gray-200 shadow-xs"
+                    : "bg-transparent"
+                }`}
+                onClick={() => {
+                  setSelectedNav("Sales");
+                }}
+              >
+                <GrMoney className="text-xl" />
+
+                <span
+                  className={`ml-4 text-sm ${
+                    sideNav ? "hidden" : "visible"
+                  } whitespace-nowrap`}
+                >
+                  Sales
+                </span>
+              </Link>
+            </li>
+          </ul>
+          <button className="flex items-center p-3 rounded-md w-full hover:bg-gray-200 duration-200">
+            <PiGearSixBold className="text-xl" />
+            <span
+              className={`ml-4 text-sm ${
+                sideNav ? "hidden" : "visible"
+              } whitespace-nowrap`}
+            >
+              Settings
+            </span>
+          </button>
+        </div>
       </nav>
 
       <div
-        className={`flex-1 mt-24 min-h-[87vh] mr-4 mb-4 pb-10 bg-gray-300 h-fit rounded-xl
+        className={`flex-1 mt-24 min-h-[87vh] mr-4 mb-4 pb-10 bg-gray-200 shadow-md h-fit rounded-xl
         transition-all duration-300 ease-in-out
         ${sideNav ? "ml-20" : "ml-56"}`}
       >
         <div className=" flex flex-row items-center gap-4 mx-2 mt-6 h-full text-xl text-gray-700">
-          <GoSidebarExpand
+          <div
             onClick={toggleSideNav}
-            className=" cursor-pointer hover:text-gray-900 duration-200 z-10"
-          />
-          <span className=" text-base font-semibold text-gray-800">
+            className=" cursor-pointer hover:bg-white p-1 rounded-sm duration-200 z-10 "
+          >
+            <TbSquareToggle size={18} />
+          </div>
+          <span className=" text-sm font-semibold text-gray-800">
             | Dashboard
           </span>
         </div>

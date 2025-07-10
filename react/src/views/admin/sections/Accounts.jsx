@@ -14,6 +14,7 @@ import { LiaTimesSolid } from "react-icons/lia";
 import { BiCalendar } from "react-icons/bi";
 import { HiOutlinePencilSquare } from "react-icons/hi2";
 import { GoTrash } from "react-icons/go";
+import { FaMagnifyingGlass } from "react-icons/fa6";
 
 const Accounts = () => {
   const [users, setUsers] = useState([]);
@@ -34,8 +35,12 @@ const Accounts = () => {
   const { notification, setNotification } = useStateContext();
   const [visible, setVisible] = useState(false);
   const [animationClass, setAnimationClass] = useState("fade-in");
-  const [selectedUserNav, setSelectedUserNav] = useState("user");
+  const [selectedUserNav, setSelectedUserNav] = useState("all");
   const [today, setToday] = useState(getFormattedDate());
+
+  const [searchTerm, setSearchTerm] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [filterSuggestion, setFilterSuggestion] = useState([]);
 
   const defaultUser = {
     id: null,
@@ -48,30 +53,34 @@ const Accounts = () => {
   };
   const [user, setUser] = useState({ defaultUser });
 
-  useEffect(() => {
-    getUsers();
-  }, []);
-
-  const getUsers = (page = 1, role = selectedUserNav) => {
+  const getUsers = (page = 1, role = selectedUserNav, search = searchTerm) => {
     setLoading(true);
-
     axiosClient
-      .get(`/users?page=${page}&role=${role}`)
+      .get(`/users`, {
+        params: {
+          page,
+          role: role.toLowerCase(),
+          search: search,
+        },
+      })
       .then(({ data }) => {
         setLoading(false);
         setUsers(data.data);
-
         setPagination({
-          links: data.links || [],
-          meta: data.meta || {},
+          links: data.meta?.pagination?.links || [],
+          meta: data.meta?.pagination,
         });
-
-        setCurrentPage(data.meta?.current_page);
+        setCurrentPage(data.meta?.pagination?.current_page);
+        console.log(data.meta?.pagination);
       })
       .catch(() => {
         setLoading(false);
+        console.error("Failed to load users:", err);
       });
   };
+  useEffect(() => {
+    getUsers(1, selectedUserNav, searchTerm);
+  }, [selectedUserNav, searchTerm]);
 
   useEffect(() => {
     if (notification) {
@@ -197,28 +206,28 @@ const Accounts = () => {
 
   const infoGraph = [
     {
-      name: "All Inquiries",
-      num: `200 Inquiries`,
-      info: `12 In this month`,
+      name: "All Users",
+      num: `200 Users`,
+      info: `+12 New in this month`,
     },
     {
-      name: "Pending Inquiries",
-      num: `17 Inquiries`,
-      info: "Current",
+      name: "Clients",
+      num: `184 Clients`,
+      info: "+9 Clients in this day",
     },
     {
-      name: "Approved Inquiries",
-      num: `74 Inquiries`,
-      info: `45 In this day`,
+      name: "Employees",
+      num: `4 Employees`,
+      info: `Current`,
     },
     {
-      name: "Rejected Inquiries",
-      num: `42 Inquiries`,
-      info: `18 In this day`,
+      name: "Active Users",
+      num: `42 Active Users`,
+      info: `Current`,
     },
   ];
 
-  const userNav = ["admin", "employees", "user"];
+  const userNav = ["all", "admin", "employee", "user"];
 
   const filteredUsers =
     selectedUserNav !== "all"
@@ -260,6 +269,21 @@ const Accounts = () => {
     return colors[index];
   }
 
+  const handleFilter = (ev) => {
+    const search = ev.target.value;
+    setSuggestions(search);
+    const newFilter = users.filter((value) => {
+      return value.name.toLowerCase().includes(search.toLowerCase());
+    });
+    console.log(suggestions);
+
+    if (search === "") {
+      setFilterSuggestion([]);
+    } else {
+      setFilterSuggestion(newFilter);
+    }
+  };
+
   return (
     <>
       {notification && (
@@ -286,7 +310,7 @@ const Accounts = () => {
         {infoGraph.map((i) => (
           <div
             key={i.name}
-            className=" cursor-pointer pr-6 py-4 shadow-sm bg-gray-100 w-full rounded-sm flex flex-col hover:scale-101 duration-300"
+            className=" cursor-pointer pr-6 py-4 shadow-sm bg-white w-full rounded-sm flex flex-col hover:shadow-lg duration-100"
           >
             <h3 className=" text-gray-500 text-sm pl-6 font-semibold">
               {i.name}
@@ -300,61 +324,122 @@ const Accounts = () => {
           </div>
         ))}
       </div>
-      <div className=" flex flex-row border-b gap-6 text-sm font-semibold border-gray-400 w-11/12 m-auto mb-4">
-        {userNav.map((role) => (
-          <button
-            key={role}
-            onClick={() => {
-              setSelectedUserNav(role);
-            }}
-            className={`px-2 py-1 hover:text-blue-500 ${
-              selectedUserNav === role
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-700"
-            }`}
-          >
-            {role.charAt(0).toUpperCase() + role.slice(1)}
-          </button>
-        ))}
+      <div className=" flex justify-between text-sm font-semibold border-b border-gray-400 w-11/12 m-auto mb-6">
+        <div className=" text-sm flex flex-row justify-between w-full gap-10">
+          <div className=" flex flex-row gap-6">
+            {userNav.map((role) => (
+              <a
+                key={role}
+                onClick={() => {
+                  setSelectedUserNav(role);
+                }}
+                className={`cursor-pointer px-2 pb-2 hover:text-blue-500 ${
+                  selectedUserNav === role
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-700"
+                }`}
+              >
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </a>
+            ))}
+          </div>
+          <div className=" flex flex-col font-normal text-sm">
+            <div className=" flex flex-row h-fit mr-4 bg-white rounded-full text-gray-700 -mt-5 shadow-sm overflow-hidden">
+              <input
+                type="text"
+                name=""
+                id=""
+                placeholder="Search account ..."
+                className=" p-2 w-96 rounded-full"
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter") {
+                    setSearchTerm(suggestions);
+                    setFilterSuggestion([]);
+                  }
+                }}
+                onChange={handleFilter}
+              />
+              <a
+                onClick={() => {
+                  setSearchTerm(suggestions);
+                  setFilterSuggestion([]);
+                }}
+                className=" px-4 my-auto text-gray-800"
+              >
+                <FaMagnifyingGlass size={15} />
+              </a>
+            </div>
+            {filterSuggestion.length !== null && (
+              <div className=" absolute flex flex-col mt-5 bg-white w-92 rounded-sm shadow-md text-gray-800 overflow-hidden">
+                {filterSuggestion.slice(0, 15).map((value, index) => {
+                  return (
+                    <div
+                      onClick={() => {
+                        setSearchTerm(value.name);
+                        setFilterSuggestion([]);
+                      }}
+                      key={index}
+                      className="cursor-pointer p-2 w-full hover:bg-gray-200"
+                    >
+                      <span>{value.name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       {loading && (
-        <div className="h-[50vh] w-full flex items-center justify-center">
-          <PulseLoader color="#9F0712" size={6} />
+        <div className="h-[40vh] w-full flex items-center justify-center">
+          <PulseLoader color="#364153" size={6} />
         </div>
       )}
       {!loading && (
         <section className="h-full">
-          <div className="h-full w-11/12 m-auto">
+          <div className="h-full w-full m-auto">
             <table className=" text-gray-900 text-left w-11/12 m-auto">
               <thead className="">
                 <tr>
                   <th
                     scope="col"
-                    className=" px-6 py-3 text-sm font-semibold tracking-wider"
+                    className=" py-3 text-sm font-semibold tracking-wider"
                   >
                     Account
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-sm font-semibold tracking-wider"
+                    className="py-3 text-sm font-semibold tracking-wider"
                   >
                     Contact Number
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-sm font-semibold tracking-wider"
+                    className="py-3 text-sm font-semibold tracking-wider"
                   >
                     Email
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-sm font-semibold tracking-wider"
+                    className="py-3 text-sm font-semibold tracking-wider"
                   >
                     Date Created
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-sm font-semibold tracking-wider"
+                    className="py-3 text-sm font-semibold tracking-wider"
+                  >
+                    Status
+                  </th>
+                  <th
+                    scope="col"
+                    className="py-3 text-sm font-semibold tracking-wider"
+                  >
+                    Last Used
+                  </th>
+                  <th
+                    scope="col"
+                    className="py-3 text-sm font-semibold tracking-wider"
                   >
                     Actions
                   </th>
@@ -394,8 +479,8 @@ const Accounts = () => {
                                   : u.role === "employee"
                                   ? "text-blue-600"
                                   : u.role === "admin"
-                                  ? "bg-indigo-700"
-                                  : "bg-gray-600"
+                                  ? "text-indigo-700"
+                                  : "text-gray-600"
                               }`}
                             />
                           </div>
@@ -417,8 +502,14 @@ const Accounts = () => {
                     <td className="py-2 whitespace-nowrap text-sm text-gray-900">
                       {u.created_at}
                     </td>
+                    <td className="py-2 whitespace-nowrap text-sm text-gray-900">
+                      Inactive
+                    </td>
+                    <td className="py-2 whitespace-nowrap text-sm text-gray-900">
+                      Never login
+                    </td>
                     <td className="py-2 whitespace-nowrap text-sm font-medium">
-                      <div className="flex text-lg gap-1 ml-5 items-center ">
+                      <div className="flex text-lg gap-1 items-center ">
                         <button onClick={() => viewUserProfile(u)}>
                           <div className="hover:bg-gray-300 text-yellow-600  rounded-full duration-100 p-1">
                             <HiOutlinePencilSquare />
@@ -442,14 +533,16 @@ const Accounts = () => {
       <section>
         {pagination.meta && pagination.meta.last_page > 1 && (
           <nav>
-            <ul className=" flex flex-row gap-2 w-11/12 m-auto h-full justify-center mt-10">
-              {pagination?.meta?.current_page !== 1 && (
+            <ul className=" flex flex-row gap-1 w-11/12 m-auto h-full justify-center mt-10">
+              {pagination?.meta?.current_page > 2 && (
                 <li>
                   <button
-                    className="cursor-pointer text-gray-800 font-semibold text-sm py-2 hover:scale-105 duration-300"
-                    onClick={() => getInquiries(1, selectedInqNav)}
+                    className="cursor-pointer text-sm text-gray-700 font-semibold px-1 py-2 hover:bg-gray-100 rounded-sm duration-100"
+                    onClick={() => {
+                      getUsers(1, selectedUserNav);
+                    }}
                   >
-                    {"<< First"}
+                    {"< First"}
                   </button>
                 </li>
               )}
@@ -457,10 +550,8 @@ const Accounts = () => {
               {pagination?.meta?.current_page > 1 && (
                 <li>
                   <button
-                    className="cursor-pointer text-gray-800 font-semibold px-4 py-2 hover:scale-105 duration-300"
-                    onClick={() =>
-                      getInquiries(currentPage - 1, selectedInqNav)
-                    }
+                    className="cursor-pointer text-sm text-gray-700 font-semibold px-1 py-2 hover:bg-gray-100 rounded-sm duration-100"
+                    onClick={() => getUsers(currentPage - 1, selectedUserNav)}
                   >
                     Previous
                   </button>
@@ -476,11 +567,11 @@ const Accounts = () => {
                   const createPageButton = (page) => (
                     <li key={page}>
                       <button
-                        onClick={() => getInquiries(page)}
-                        className={`cursor-pointer px-3 py-1 rounded-sm border border-gray-900 shadow-sm hover:text-white hover:bg-gray-900 duration-300 ${
+                        onClick={() => getUsers(page)}
+                        className={`cursor-pointer px-3 py-1 rounded-sm border border-gray-700 shadow-sm hover:text-white hover:bg-gray-700 duration-100 ${
                           currentPage === page
-                            ? "text-white bg-gray-900"
-                            : "text-gray-900"
+                            ? "text-white bg-gray-700"
+                            : "text-gray-700"
                         }`}
                         disabled={currentPage === page}
                       >
@@ -532,10 +623,8 @@ const Accounts = () => {
               {pagination?.meta?.current_page < pagination?.meta?.last_page && (
                 <li>
                   <button
-                    className="cursor-pointer text-gray-800 font-semibold px-4 py-2 hover:scale-105 duration-300"
-                    onClick={() =>
-                      getInquiries(currentPage + 1, selectedInqNav)
-                    }
+                    className="cursor-pointer text-gray-700 font-semibold px-2 py-2 hover:scale-105 duration-100"
+                    onClick={() => getUsers(currentPage + 1, selectedUserNav)}
                   >
                     Next
                   </button>
@@ -545,12 +634,12 @@ const Accounts = () => {
                 pagination?.meta?.last_page && (
                 <li>
                   <button
-                    className="cursor-pointer text-sm text-gray-800 font-semibold py-2 hover:scale-105 duration-300"
+                    className="cursor-pointer text-sm text-gray-700 font-semibold py-2 hover:scale-105 duration-300"
                     onClick={() =>
-                      getInquiries(pagination.meta.last_page, selectedInqNav)
+                      getUsers(pagination.meta.last_page, selectedUserNav)
                     }
                   >
-                    {"Last >>"}
+                    {"Last >"}
                   </button>
                 </li>
               )}
@@ -563,7 +652,7 @@ const Accounts = () => {
         {isVisible && (
           <div
             ref={addNewBgRef}
-            className="fixed scale-0  inset-0 bg-[rgba(16,24,33,0.3)] z-40 backdrop-blur-sm"
+            className="fixed scale-0 inset-0 bg-[rgba(16,24,33,0.8)] z-40 "
           ></div>
         )}
         {isVisible && (
@@ -729,7 +818,7 @@ const Accounts = () => {
         {viewProfile && (
           <div
             ref={viewProfileBgRef}
-            className="fixed scale-0  inset-0 bg-[rgba(16,24,33,0.3)] z-40 backdrop-blur-sm"
+            className="fixed scale-0 inset-0 bg-[rgba(16,24,33,0.8)] z-40 "
           ></div>
         )}
         {viewProfile && (
@@ -789,13 +878,16 @@ const Accounts = () => {
                   <select
                     id="role"
                     className="p-2 border border-gray-300 shadow-sm rounded-sm"
-                    value={user.role}
+                    value={user.role || ""}
                     onChange={(ev) =>
                       setUser({ ...user, role: ev.target.value })
                     }
                   >
-                    <option value="">Select Role</option>
+                    <option value="" disabled>
+                      Select Role
+                    </option>
                     <option value="user">User</option>
+                    <option value="employee">Employee</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>

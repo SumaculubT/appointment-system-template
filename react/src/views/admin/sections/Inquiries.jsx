@@ -9,6 +9,8 @@ import { TbHandStop } from "react-icons/tb";
 import { BiCalendar } from "react-icons/bi";
 import { PiPlus } from "react-icons/pi";
 import { LiaEllipsisHSolid, LiaTimesSolid } from "react-icons/lia";
+import { CiBoxList, CiViewTable } from "react-icons/ci";
+import { FaMagnifyingGlass } from "react-icons/fa6";
 
 const Inquiries = () => {
   const { inquiries, fetchInquiries, notification, setNotification } =
@@ -32,8 +34,13 @@ const Inquiries = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({});
   const [errors, setErrors] = useState(null);
-  const [selectedInqNav, setSelectedInqNav] = useState("All");
+  const [selectedInqNav, setSelectedInqNav] = useState("all");
   const [today, setToday] = useState(getFormattedDate());
+  const [toggleFormat, setToggleFormat] = useState(true);
+
+  const [searchTerm, setSearchTerm] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [filterSuggestion, setFilterSuggestion] = useState([]);
   const [inquiry, setInquiry] = useState({
     user_id: "",
     user_name: "",
@@ -95,7 +102,11 @@ const Inquiries = () => {
   const viewDetailsRef = useRef(null);
   const viewDetailsBgRef = useRef(null);
 
-  const getInquiries = (page = 1, status = selectedInqNav) => {
+  const getInquiries = (
+    page = 1,
+    status = selectedInqNav,
+    search = searchTerm
+  ) => {
     setLoading(true);
 
     axiosClient
@@ -103,6 +114,7 @@ const Inquiries = () => {
         params: {
           page,
           status: status.toLowerCase(),
+          search: search,
         },
       })
       .then(({ data }) => {
@@ -114,6 +126,7 @@ const Inquiries = () => {
         });
         setCounts(data.counts);
         setCurrentPage(data.meta?.pagination?.current_page);
+        console.log(data.meta?.pagination);
       })
       .catch((err) => {
         setLoading(false);
@@ -122,8 +135,8 @@ const Inquiries = () => {
   };
 
   useEffect(() => {
-    getInquiries(1, selectedInqNav);
-  }, [selectedInqNav]);
+    getInquiries(1, selectedInqNav, searchTerm);
+  }, [selectedInqNav, searchTerm]);
 
   const viewDetailsBtn = (inq) => {
     setSelectedInquiry(inq);
@@ -284,16 +297,16 @@ const Inquiries = () => {
   ];
 
   const inqNav = [
-    "All",
-    "Approved",
-    "Pending",
-    "Waitlisted",
-    "Rejected",
-    "Archive",
+    "all",
+    "approved",
+    "pending",
+    "waitlisted",
+    "rejected",
+    "archive",
   ];
 
   const filteredInquiries =
-    selectedInqNav !== "All"
+    selectedInqNav !== "all"
       ? inquiries.filter((inq) => inq.status === selectedInqNav.toLowerCase())
       : inquiries;
 
@@ -322,6 +335,21 @@ const Inquiries = () => {
   const handleChange = (e) => {
     setInquiry({ ...inquiry, [e.target.name]: e.target.value });
     setInitial({ ...inquiry, [e.target.name]: e.target.value });
+  };
+
+  const handleFilter = (ev) => {
+    const search = ev.target.value;
+    setSuggestions(search);
+    const newFilter = inquiries.filter((value) => {
+      return value.name.toLowerCase().includes(search.toLowerCase());
+    });
+    console.log(suggestions);
+
+    if (search === "") {
+      setFilterSuggestion([]);
+    } else {
+      setFilterSuggestion(newFilter);
+    }
   };
 
   function getFormattedDate() {
@@ -362,7 +390,7 @@ const Inquiries = () => {
           {infoGraph.map((i) => (
             <div
               key={i.name}
-              className=" cursor-pointer pr-6 py-4 shadow-sm bg-gray-100 w-full rounded-sm flex flex-col hover:scale-101 duration-300"
+              className=" cursor-pointer pr-6 py-4 shadow-sm bg-white w-full rounded-sm flex flex-col hover:shadow-lg duration-100"
             >
               <h3 className=" text-gray-500 text-sm pl-6 font-semibold">
                 {i.name}
@@ -384,28 +412,100 @@ const Inquiries = () => {
             </div>
           ))}
         </div>
-        <div className=" flex flex-row border-b gap-6 text-sm font-semibold border-gray-400 w-11/12 m-auto mb-4">
-          {inqNav.map((status) => (
-            <button
-              key={status}
-              onClick={() => setSelectedInqNav(status)}
-              className={`px-2 py-1 hover:text-blue-500 ${
-                selectedInqNav === status
-                  ? "text-blue-600 border-b-2"
-                  : "text-gray-700"
+        <div className=" flex justify-between text-sm font-semibold border-b border-gray-400 w-11/12 m-auto mb-6">
+          <div className=" text-sm flex flex-row justify-between w-full gap-10">
+            <div className=" flex flex-row gap-6">
+              {inqNav.map((status) => (
+                <a
+                  key={status}
+                  onClick={() => {
+                    setSelectedInqNav(status);
+                  }}
+                  className={`cursor-pointer px-2 pb-2 hover:text-blue-500 ${
+                    selectedInqNav === status
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-700"
+                  }`}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </a>
+              ))}
+            </div>
+            <div className=" flex flex-col font-normal text-sm">
+              <div className=" flex flex-row h-fit mr-4 bg-white rounded-full text-gray-700 -mt-5 shadow-sm overflow-hidden">
+                <input
+                  type="text"
+                  name=""
+                  id=""
+                  placeholder="Search item ..."
+                  className=" p-2 w-96 rounded-full"
+                  onKeyDown={(ev) => {
+                    if (ev.key === "Enter") {
+                      setSearchTerm(suggestions);
+                      setFilterSuggestion([]);
+                    }
+                  }}
+                  onChange={handleFilter}
+                />
+                <a
+                  onClick={() => {
+                    setSearchTerm(suggestions);
+                    setFilterSuggestion([]);
+                  }}
+                  className=" px-4 my-auto text-gray-800"
+                >
+                  <FaMagnifyingGlass size={15} />
+                </a>
+              </div>
+              {filterSuggestion.length !== null && (
+                <div className=" absolute flex flex-col mt-5 bg-white w-92 rounded-sm shadow-md text-gray-800 overflow-hidden">
+                  {filterSuggestion.slice(0, 15).map((value, index) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          setSearchTerm(value.name);
+                          setFilterSuggestion([]);
+                        }}
+                        key={index}
+                        className="cursor-pointer p-2 w-full hover:bg-gray-200"
+                      >
+                        <span>{value.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+          <div
+            onClick={() => {
+              setToggleFormat(!toggleFormat);
+            }}
+            className="flex flex-row w-fit h-fit -mt-5 mb-4 text-gray-800 rounded-full shadow-sm hover:shadow-md bg-white"
+          >
+            <div
+              className={`cursor-pointer p-2 rounded-full transition-colors duration-200 ${
+                toggleFormat ? "bg-gray-800 shadow-sm text-white" : ""
               }`}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </button>
-          ))}
+              <CiBoxList size={20} />
+            </div>
+            <div
+              className={`cursor-pointer p-2 rounded-full transition-colors duration-200 ${
+                !toggleFormat ? "bg-gray-800 shadow-sm text-white" : ""
+              }`}
+            >
+              <CiViewTable size={20} />
+            </div>
+          </div>
         </div>
       </section>
       {loading && (
         <div className="h-[50vh] w-full flex items-center justify-center">
-          <PulseLoader color="#9F0712" size={6} />
+          <PulseLoader color="#364153" size={6} />
         </div>
       )}
-      <section className="w-11/12 m-auto grid grid-cols-4 gap-4">
+      <section className="px-5 m-auto grid grid-cols-4 gap-4">
         {notification && (
           <div
             className={`fixed bottom-15 -right-4 z-50 bg-green-500 font-semibold text-xl -skew-x-12 text-white px-20 py-8 shadow-lg ${animationClass}`}
@@ -460,7 +560,11 @@ const Inquiries = () => {
                     <span className=" text-xs font-semibold text-gray-600 mr-2">
                       Telephone Number
                     </span>
-                    <span className="text-sm">{inq.user_contact_number}</span>
+                    <span className="text-sm">
+                      {inq.user_contact_number === null
+                        ? "No Contact#"
+                        : inq.user_contact_number}
+                    </span>
                   </div>
                   <div className=" flex flex-col">
                     <span className=" text-xs font-semibold text-gray-600 mr-2">
@@ -495,7 +599,7 @@ const Inquiries = () => {
               {isVisible && (
                 <div
                   ref={viewDetailsBgRef}
-                  className="fixed scale-0  inset-0 bg-[rgba(16,24,33,0.3)] z-40 backdrop-blur-xs"
+                  className="fixed scale-0  inset-0 bg-[rgba(16,24,33,0.8)] z-40 "
                 ></div>
               )}
 
@@ -701,7 +805,7 @@ const Inquiries = () => {
                     className="cursor-pointer text-gray-800 font-semibold text-sm py-2 hover:scale-105 duration-300"
                     onClick={() => getInquiries(1, selectedInqNav)}
                   >
-                    {"<< First"}
+                    {"< First"}
                   </button>
                 </li>
               )}
@@ -802,7 +906,7 @@ const Inquiries = () => {
                       getInquiries(pagination.meta.last_page, selectedInqNav)
                     }
                   >
-                    {"Last >>"}
+                    {"Last >"}
                   </button>
                 </li>
               )}
@@ -814,7 +918,7 @@ const Inquiries = () => {
         {addInqVisible && (
           <div
             ref={addNewBgRef}
-            className="fixed scale-0 inset-0 bg-[rgba(16,24,33,0.3)] z-40 backdrop-blur-sm"
+            className="fixed scale-0 inset-0 bg-[rgba(16,24,33,0.8)] z-40 "
           ></div>
         )}
         {addInqVisible && (

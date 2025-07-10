@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InquiryController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
 use Illuminate\Http\Request;
@@ -15,6 +17,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('/users', UserController::class);
     Route::apiResource('/inquiry', InquiryController::class);
+    Route::apiResource('/products', ProductController::class);
+    Route::apiResource('/services', ServiceController::class);
 });
 
 Route::post('/signup', [AuthController::class, 'signup']);
