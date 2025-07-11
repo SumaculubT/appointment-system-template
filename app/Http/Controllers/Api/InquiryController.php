@@ -43,7 +43,7 @@ class InquiryController extends Controller
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('user_name', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                    ->orWhere('user_email', 'like', '%' . $searchTerm . '%');
             });
         }
 

@@ -341,7 +341,7 @@ const Inquiries = () => {
     const search = ev.target.value;
     setSuggestions(search);
     const newFilter = inquiries.filter((value) => {
-      return value.name.toLowerCase().includes(search.toLowerCase());
+      return value.user_name.toLowerCase().includes(search.toLowerCase());
     });
     console.log(suggestions);
 
@@ -463,13 +463,13 @@ const Inquiries = () => {
                     return (
                       <div
                         onClick={() => {
-                          setSearchTerm(value.name);
+                          setSearchTerm(value.user_name);
                           setFilterSuggestion([]);
                         }}
                         key={index}
                         className="cursor-pointer p-2 w-full hover:bg-gray-200"
                       >
-                        <span>{value.name}</span>
+                        <span>{value.user_name}</span>
                       </div>
                     );
                   })}
