@@ -24,9 +24,10 @@ class UpdateUserRequest extends FormRequest
     {
         $rules = [
             'name' => 'required|string|max:55',
-            'email' => 'required|email|unique:users,email,' . $this->id,
+            'email' => 'required|email|unique:users,email,' . $this->user->id,
             'contact_number' => 'nullable|string|max:20',
             'role' => 'sometimes|in:admin,employee,user',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ];
 
         if ($this->filled('password')) {

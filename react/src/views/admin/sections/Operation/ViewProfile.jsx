@@ -75,30 +75,35 @@ const ViewProfile = ({
           )}
           {!userLoading && (
             <div className=" w-11/12 m-auto">
-              <div className=" flex flex-row gap-4 py-5 border-t border-gray-300">
-                <div className=" bg-gray-900 h-16 w-16 rounded-full"></div>
-                <div className=" flex flex-col my-auto gap-2">
-                  <div className=" flex flex-row gap-2 text-sm">
-                    <button className=" px-6 py-1 bg-blue-700 rounded-sm text-white ">
-                      Upload Photo
-                    </button>
-                    <button className=" px-6 py-1 border border-gray-700 rounded-sm text-gray-900">
-                      Remove Photo
-                    </button>
+              <form onSubmit={UpdateAdminUser} encType="multipart/form-data">
+                <div className=" flex flex-row gap-4 py-5 border-t border-gray-300">
+                  <div className=" bg-gray-900 h-16 w-16 rounded-full"></div>
+                  <div className=" flex flex-col my-auto gap-2">
+                    <div className=" flex flex-row gap-2 text-sm">
+                      <label
+                        htmlFor="formFile"
+                        className=" px-6 py-1 bg-blue-700 rounded-sm text-white "
+                      >
+                        Upload Photo
+                        <input type="file" name="image" className="hidden" />
+                      </label>
+
+                      <button className=" px-6 py-1 border border-gray-700 rounded-sm text-gray-900">
+                        Remove Photo
+                      </button>
+                    </div>
+                    <span className=" text-sm">
+                      {new Date(user.created_at).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </span>
                   </div>
-                  <span className=" text-sm">
-                    {new Date(user.created_at).toLocaleString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                      hour12: true,
-                    })}
-                  </span>
                 </div>
-              </div>
-              <form onSubmit={UpdateAdminUser}>
                 <div className=" flex flex-col gap-4 pb-5 border-b border-gray-300">
                   <div className=" flex justify-between">
                     <h1 className=" text-gray-900 text-lg font-bold">

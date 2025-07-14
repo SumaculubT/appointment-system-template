@@ -10,7 +10,7 @@ import {
 import { ClipLoader, PulseLoader } from "react-spinners";
 import { useStateContext } from "../../../contexts/ContextProvider";
 import { PiPlus } from "react-icons/pi";
-import { LiaTimesSolid } from "react-icons/lia";
+import { LiaEllipsisHSolid, LiaTimesSolid } from "react-icons/lia";
 import { BiCalendar } from "react-icons/bi";
 import { HiOutlinePencilSquare } from "react-icons/hi2";
 import { GoTrash } from "react-icons/go";
@@ -46,6 +46,7 @@ const Accounts = () => {
     id: null,
     name: "",
     email: "",
+    image: "",
     contact_number: "",
     role: "",
     password: "",
@@ -164,8 +165,19 @@ const Accounts = () => {
     ev.preventDefault();
     setNewUserLoading(true);
 
+    const formData = new FormData();
+    if (user.image) {
+      formData.append("image", user.image);
+    }
+
+    for (const key in user) {
+      if (user.hasOwnProperty(key)) {
+        formData.append(key, user[key]);
+      }
+    }
+
     axiosClient
-      .post(`/users`, user)
+      .post(`/users`, formData)
       .then(() => {
         setNewUserLoading(false);
         setNotification("New user was added");
@@ -179,6 +191,9 @@ const Accounts = () => {
         const response = err.response;
         if (response && response.status === 422) {
           setErrors(response.data.errors);
+        } else {
+          console.error("An unexpected error occurred:", err);
+          setNotification("An error occurred. Please try again.");
         }
       });
   };
@@ -455,13 +470,23 @@ const Accounts = () => {
                     <td className="pl-2 py-2 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex flex-row gap-4">
                         <div
-                          className={`h-10 w-10 text-gray-100 rounded-full flex items-center justify-center ${getRandomColorClass(
+                          className={`h-10 w-10 text-gray-100 rounded-full flex items-center justify-center overflow-hidden ${getRandomColorClass(
                             u.name
                           )}`}
                         >
-                          <h1 className="text-4xl">
-                            {u.name.charAt(0).toUpperCase()}
-                          </h1>
+                          {u.image ? (
+                            <img
+                              src={`${
+                                import.meta.env.VITE_API_BASE_URL
+                              }/storage/images/users/${u.image}`}
+                              alt={u.name || "User Avatar"}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <h1 className="text-4xl">
+                              {u.name.charAt(0).toUpperCase()}
+                            </h1>
+                          )}
                         </div>
                         <div className="flex flex-col h-full my-auto">
                           <div className="flex flex-row gap-2">
@@ -661,7 +686,11 @@ const Accounts = () => {
             key="userCreate"
             className="fixed scale-0 transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 bg-white shadow-md rounded-md h-fit w-1/3 z-50 duration-200"
           >
-            <form onSubmit={onSubmit} className="text-gray-900">
+            <form
+              onSubmit={onSubmit}
+              encType="multipart/form-data"
+              className="text-gray-900"
+            >
               <div className=" flex justify-between p-2 h-fit w-full ">
                 <h1 className=" text-gray-900 text-xl font-bold">
                   Add New Account
@@ -697,6 +726,7 @@ const Accounts = () => {
                   </label>
                   <input
                     id="name"
+                    name="name"
                     value={user.name}
                     onChange={(ev) =>
                       setUser({ ...user, name: ev.target.value })
@@ -711,6 +741,7 @@ const Accounts = () => {
                   </label>
                   <select
                     id="role"
+                    name="role"
                     className="p-2 border border-gray-300 shadow-sm rounded-sm"
                     value={user.role}
                     onChange={(ev) =>
@@ -730,6 +761,7 @@ const Accounts = () => {
                   </label>
                   <input
                     id="email"
+                    name="email"
                     value={user.email}
                     onChange={(ev) =>
                       setUser({ ...user, email: ev.target.value })
@@ -748,6 +780,7 @@ const Accounts = () => {
                   </label>
                   <input
                     id="contact_number"
+                    name="contact_number"
                     value={user.contact_number}
                     onChange={(ev) =>
                       setUser({ ...user, contact_number: ev.target.value })
@@ -762,6 +795,7 @@ const Accounts = () => {
                   </label>
                   <input
                     id="password"
+                    name="password"
                     onChange={(ev) =>
                       setUser({ ...user, password: ev.target.value })
                     }
@@ -779,6 +813,7 @@ const Accounts = () => {
                   </label>
                   <input
                     id="password_confirmation"
+                    name="password_confirmation"
                     onChange={(ev) =>
                       setUser({
                         ...user,
@@ -788,6 +823,22 @@ const Accounts = () => {
                     className="p-2 border border-gray-300 shadow-sm rounded-sm"
                     type="password"
                     placeholder="Confirm Password"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-xs font-semibold" htmlFor="image">
+                    Upload Photo
+                  </label>
+                  <input
+                    id="image"
+                    name="image"
+                    type="file"
+                    onChange={(ev) =>
+                      setUser({
+                        ...user,
+                        image: ev.target.files[0],
+                      })
+                    }
                   />
                 </div>
               </div>

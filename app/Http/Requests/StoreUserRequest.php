@@ -24,16 +24,18 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:55',
-            'contact_number' => '',
+            'contact_number' => 'nullable|string|max:20',
             'email' => 'required|email|unique:users,email',
-            'role' => 'required',
+            'role' => 'required|in:admin,employee,user',
             'password' => [
                 'required',
                 'confirmed',
                 Password::min(8)
                     ->letters()
                     ->symbols()
-            ]
+                    ->uncompromised(),
+            ],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
         ];
     }
 }
